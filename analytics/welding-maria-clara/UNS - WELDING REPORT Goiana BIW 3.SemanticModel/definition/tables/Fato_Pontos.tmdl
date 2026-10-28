@@ -1,0 +1,180 @@
+table Fato_Pontos
+	lineageTag: c85667ca-954a-482c-93ff-2925acf16174
+
+	measure totalEletrodos = COUNTROWS(Fato_Pontos)*2
+		formatString: 0
+		lineageTag: 9470f9be-f70d-49a7-96cd-4b2bb5505e6d
+
+	measure Media_241 = ```
+			CALCULATE(
+			    AVERAGE('Fato_Pontos'[pontosEntreIndex]),
+			    'Fato_Pontos'[progNo_referencia] = "241"
+			)
+			
+			```
+		lineageTag: ff414c57-3be3-4105-a177-120a8332a693
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Media_242 = ```
+			CALCULATE(
+			    AVERAGE('Fato_Pontos'[pontosEntreIndex]),
+			    'Fato_Pontos'[progNo_referencia] = "242"
+			)
+			
+			```
+		lineageTag: aa90c4a4-3397-440f-9abe-a69d2016a04c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Media_242/241 = ```
+			CALCULATE(
+			    AVERAGE('Fato_Pontos'[ContagemBloco]),
+			    'Fato_Pontos'[progNo_referencia] = "241"
+			)
+			
+			```
+		lineageTag: f1aead1e-5efa-4b96-aec4-851c9d49fce9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure dif%RealPar = DIVIDE([Media_241], SUM(Fato_Fresagem[vida_eletrodo]))
+		lineageTag: 6192dc44-e818-4cb7-82c5-05fa72f7d113
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Count_241 = ```
+			CALCULATE(
+			    COUNT('Fato_Pontos'[pontosEntreIndex]),
+			    'Fato_Pontos'[progNo_referencia] = "241"
+			)
+			
+			```
+		formatString: 0
+		lineageTag: ac68b6fe-3af6-4d03-810b-89a622afa094
+
+	column ContagemBloco
+		dataType: double
+		lineageTag: 27588160-4cf9-4461-8333-ac8405fc99fa
+		summarizeBy: sum
+		sourceColumn: ContagemBloco
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dateTime_index1
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 840bd7c4-631d-43f9-afb7-8ca9b21a031a
+		summarizeBy: none
+		sourceColumn: dateTime_index1
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateTime_index2
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 95269565-bcb0-4bd3-a161-692d145d574a
+		summarizeBy: none
+		sourceColumn: dateTime_index2
+
+		annotation SummarizationSetBy = Automatic
+
+	column index_1
+		dataType: string
+		lineageTag: 70f7addd-f0b0-4952-83ff-c6723b381c18
+		summarizeBy: none
+		sourceColumn: index_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column index_2
+		dataType: string
+		lineageTag: dff9c9b2-f419-47ac-a433-383590648de1
+		summarizeBy: none
+		sourceColumn: index_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column lista_progNo
+		dataType: string
+		lineageTag: 2bfbde78-a931-4d58-80a2-41685008e7dd
+		summarizeBy: none
+		sourceColumn: lista_progNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column pontosEntreIndex
+		dataType: int64
+		formatString: 0
+		lineageTag: e47df50e-0eee-41eb-9eda-ab170e67628e
+		summarizeBy: sum
+		sourceColumn: pontosEntreIndex
+
+		annotation SummarizationSetBy = Automatic
+
+	column progNo_referencia
+		dataType: string
+		lineageTag: c8129207-2eb4-4547-a942-f866fe348574
+		summarizeBy: none
+		sourceColumn: progNo_referencia
+
+		annotation SummarizationSetBy = Automatic
+
+	column timerName
+		dataType: string
+		lineageTag: 997aea6b-cbcd-4eaa-9979-d766f2a4744c
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column wearPerCent_consumed_until_next_reference
+		dataType: double
+		lineageTag: 845d1812-209c-4351-a0a1-12412b516b45
+		summarizeBy: sum
+		sourceColumn: wearPerCent_consumed_until_next_reference
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Data_fim
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e40d885d-2f1c-4eb8-8760-26a0930e8b8d
+		summarizeBy: none
+		sourceColumn: Data_fim
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Fato_Pontos = m
+		mode: import
+		source =
+				let
+				    Fonte = GoogleBigQuery.Database(),
+				    #"data-lake-manufacturing" = Fonte{[Name="data-lake-manufacturing"]}[Data],
+				    Analytics_emille_Schema = #"data-lake-manufacturing"{[Name="Analytics_emille",Kind="Schema"]}[Data],
+				    tb_ExtWeldMeasureProt2_Table = Analytics_emille_Schema{[Name="tb_ExtWeldMeasureProt2",Kind="Table"]}[Data],
+				    #"Adicionado Índice" = Table.AddIndexColumn(tb_ExtWeldMeasureProt2_Table , "OriginalIndex", 1, 1, Int64.Type),
+				    #"Adicionado Bloco_Inicio_241_Temp" = Table.AddColumn(#"Adicionado Índice", "Bloco_Inicio_241_Temp", each if [progNo_referencia] = 241 then [OriginalIndex] else null, Int64.Type),
+				    #"Preenchido para Baixo" = Table.FillDown(#"Adicionado Bloco_Inicio_241_Temp", {"Bloco_Inicio_241_Temp"}),
+				    #"Contagem 242s por Bloco" = Table.Group(#"Preenchido para Baixo", {"Bloco_Inicio_241_Temp"}, {
+				        {"ContagemBloco", each List.Count(List.Select(_[progNo_referencia], each _ = 242)), type number},
+				        {"Todas as Linhas", each _, type table} // Mantém todas as linhas do grupo para reconstrução
+				    }),
+				    #"Todas as Linhas Expandido" = Table.ExpandTableColumn(#"Contagem 242s por Bloco", "Todas as Linhas", {"dateTime_index1", "dateTime_index2", "index_1", "index_2", "lista_progNo", "pontosEntreIndex", "progNo_referencia", "timerName", "wearPerCent_consumed_until_next_reference"}, {"dateTime_index1", "dateTime_index2", "index_1", "index_2", "lista_progNo", "pontosEntreIndex", "progNo_referencia", "timerName", "wearPerCent_consumed_until_next_reference"}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Todas as Linhas Expandido",{"Bloco_Inicio_241_Temp"}),
+				    #"Coluna Duplicada" = Table.DuplicateColumn(#"Colunas Removidas", "dateTime_index2", "dateTime_index2 - Copiar"),
+				    #"Colunas Renomeadas" = Table.RenameColumns(#"Coluna Duplicada",{{"dateTime_index2 - Copiar", "Data_fim"}}),
+				    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Colunas Renomeadas",{{"dateTime_index1", type datetime}, {"dateTime_index2", type datetime}, {"wearPerCent_consumed_until_next_reference", type number},  {"pontosEntreIndex", Int64.Type}, {"Data_fim", type date}})
+				in
+				    #"Tipo Alterado1"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

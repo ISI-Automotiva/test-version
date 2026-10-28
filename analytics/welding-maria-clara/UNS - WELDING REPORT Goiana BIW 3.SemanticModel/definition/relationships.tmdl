@@ -1,0 +1,72 @@
+relationship 6ddb2ebe-7c83-49bd-87e0-846b8206d374
+	fromColumn: Fato_Solda.Data
+	toColumn: Dim_Data.Data
+
+relationship 78baaf78-f036-4003-a39f-84c547994994
+	fromColumn: Fato_Erro.Data
+	toColumn: Dim_Data.Data
+
+relationship 583e9ce1-2aec-4fc6-8ab4-35a7de89b89c
+	fromColumn: Fato_PHA2_Diario.Data
+	toColumn: Dim_Data.Data
+
+relationship e19f47cf-c762-4c7e-beb9-3deedfb0d88b
+	fromColumn: Fato_Splash_Diario.Data
+	toColumn: Dim_Data.Data
+
+relationship 841a2d99-6b91-4da5-9619-2dc61a43f027
+	fromColumn: Fato_Pontos.Data_fim
+	toColumn: Dim_Data.Data
+
+relationship 7bc32d31-ea51-4a62-9062-171436d166d0
+	fromColumn: Fato_MudancaParam.Data
+	toColumn: Dim_Data.Data
+
+relationship bcce82d2-deab-4dd6-8743-ef01458fa635
+	fromColumn: Fato_Solda.electrodeNo
+	toColumn: Dim_Pinca.pinca
+
+relationship 0dbd183e-3600-4db4-bf53-3161dad131b4
+	fromColumn: Fato_Splash_Diario.electrodeNo
+	toColumn: Dim_Pinca.pinca
+
+relationship 0ea77668-6ab9-40ae-b3ce-a05bb28d456f
+	fromColumn: Fato_Solda.Modelo_cod
+	toColumn: Dim_Modelo.model_cod
+
+relationship f097a478-507f-4955-a3bf-d745cb0ec776
+	fromColumn: Fato_Erro.error_code
+	toColumn: Dim_Erro.error_code
+
+relationship 31578559-9574-4408-b76d-ed895a5009ae
+	fromColumn: Fato_Erro.timerName
+	toColumn: Dim_Robo.timerName
+
+relationship 29da5f2e-4c8a-4b35-9ef6-7662c5dc1e58
+	fromColumn: Fato_MudancaParam.timerName
+	toColumn: Dim_Robo.timerName
+
+relationship b646d2c7-d11d-4f5c-9885-a1c1064b1107
+	fromColumn: Fato_Pontos.timerName
+	toColumn: Dim_Robo.timerName
+
+relationship 3beebc2e-65ea-4b45-bf83-9abece19e864
+	fromColumn: Fato_Fresagem.timerName
+	toColumn: Dim_Robo.timerName
+
+relationship 22710c6a-1b4f-4e41-b0b2-0f260e29c575
+	fromColumn: Fato_Parametros_Corrente.timerName
+	toColumn: Dim_Robo.timerName
+
+relationship 588e7b0f-be9f-43f6-a327-dc9d485db568
+	fromColumn: Snap_Comunicacao.timerName
+	toColumn: Dim_Robo.timerName
+
+relationship 567492a1-cc8c-aa6b-edb3-da370e9ab5d4
+	fromColumn: Fato_PHA2_Diario.timerName
+	toColumn: Dim_Pinca.pinca
+
+relationship 5e8b6708-1c0c-42a3-8716-ff9d379a134c
+	fromColumn: Dim_Pinca.robo
+	toColumn: Dim_Robo.timerName
+

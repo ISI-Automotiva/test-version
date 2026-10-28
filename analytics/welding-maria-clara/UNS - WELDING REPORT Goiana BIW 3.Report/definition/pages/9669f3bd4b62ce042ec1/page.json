@@ -1,0 +1,447 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "9669f3bd4b62ce042ec1",
+  "displayName": "4.1 QUALIDADE FRESAGEM",
+  "displayOption": "FitToPage",
+  "height": 800,
+  "width": 1500,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter9efe4148a989975e84ce",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fato_Solda"
+              }
+            },
+            "Property": "progNo"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Fato_Solda",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "e"
+                          }
+                        },
+                        "Property": "progNo"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "253L"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "6576d714fac4657332f4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fato_Erro"
+              }
+            },
+            "Property": "errorCode1_txt"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Fato_Erro",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "e"
+                          }
+                        },
+                        "Property": "errorCode1_txt"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Temp. transformador dem. alta'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Ciclo bloqueado'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'PSQ erro'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Não há conexão ao CS'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Erro de solda'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Abastecimento 24V desligado/insuficiente'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Diodo defeituoso'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Erro hardware'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Mem��ria deletada'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Não há programa de solda'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Pot. demas. alta (Val. nom.)'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Q parada'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Restaurar dados ativo'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Sobrecorrente ou erro terra'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Tempo de solda interrompido/falta de corrente'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Tensão de rede desligada/insuficiente'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "66b195ac546267e9fea8",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  },
+  "objects": {
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "ThemeDataColor": {
+                    "ColorId": 0,
+                    "Percent": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "border": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          },
+          "width": {
+            "expr": {
+              "Literal": {
+                "Value": "203L"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F3F3F3'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "15fae9be9205be748a57",
+      "target": "2f4a5718c215bd565d32",
+      "type": "DataFilter"
+    },
+    {
+      "source": "15fae9be9205be748a57",
+      "target": "fb47ff035a59771ad5e0",
+      "type": "DataFilter"
+    },
+    {
+      "source": "15fae9be9205be748a57",
+      "target": "d961860acb70ebf0b2ad",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3e900a9e2c242f56681e",
+      "target": "2f4a5718c215bd565d32",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3e900a9e2c242f56681e",
+      "target": "fb47ff035a59771ad5e0",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3e900a9e2c242f56681e",
+      "target": "d961860acb70ebf0b2ad",
+      "type": "DataFilter"
+    },
+    {
+      "source": "a9d370ca1b8a9fa24fbb",
+      "target": "2f4a5718c215bd565d32",
+      "type": "DataFilter"
+    },
+    {
+      "source": "a9d370ca1b8a9fa24fbb",
+      "target": "fb47ff035a59771ad5e0",
+      "type": "DataFilter"
+    },
+    {
+      "source": "a9d370ca1b8a9fa24fbb",
+      "target": "d961860acb70ebf0b2ad",
+      "type": "DataFilter"
+    },
+    {
+      "source": "15fae9be9205be748a57",
+      "target": "3e900a9e2c242f56681e",
+      "type": "DataFilter"
+    },
+    {
+      "source": "15fae9be9205be748a57",
+      "target": "a9d370ca1b8a9fa24fbb",
+      "type": "DataFilter"
+    },
+    {
+      "source": "2f4a5718c215bd565d32",
+      "target": "15fae9be9205be748a57",
+      "type": "DataFilter"
+    },
+    {
+      "source": "2f4a5718c215bd565d32",
+      "target": "3e900a9e2c242f56681e",
+      "type": "DataFilter"
+    },
+    {
+      "source": "2f4a5718c215bd565d32",
+      "target": "a9d370ca1b8a9fa24fbb",
+      "type": "DataFilter"
+    },
+    {
+      "source": "2f4a5718c215bd565d32",
+      "target": "d961860acb70ebf0b2ad",
+      "type": "DataFilter"
+    },
+    {
+      "source": "2f4a5718c215bd565d32",
+      "target": "fb47ff035a59771ad5e0",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3e900a9e2c242f56681e",
+      "target": "15fae9be9205be748a57",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3e900a9e2c242f56681e",
+      "target": "a9d370ca1b8a9fa24fbb",
+      "type": "DataFilter"
+    },
+    {
+      "source": "a9d370ca1b8a9fa24fbb",
+      "target": "15fae9be9205be748a57",
+      "type": "DataFilter"
+    },
+    {
+      "source": "a9d370ca1b8a9fa24fbb",
+      "target": "3e900a9e2c242f56681e",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d961860acb70ebf0b2ad",
+      "target": "15fae9be9205be748a57",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d961860acb70ebf0b2ad",
+      "target": "2f4a5718c215bd565d32",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d961860acb70ebf0b2ad",
+      "target": "3e900a9e2c242f56681e",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d961860acb70ebf0b2ad",
+      "target": "a9d370ca1b8a9fa24fbb",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d961860acb70ebf0b2ad",
+      "target": "fb47ff035a59771ad5e0",
+      "type": "DataFilter"
+    },
+    {
+      "source": "fb47ff035a59771ad5e0",
+      "target": "15fae9be9205be748a57",
+      "type": "DataFilter"
+    },
+    {
+      "source": "fb47ff035a59771ad5e0",
+      "target": "2f4a5718c215bd565d32",
+      "type": "DataFilter"
+    },
+    {
+      "source": "fb47ff035a59771ad5e0",
+      "target": "3e900a9e2c242f56681e",
+      "type": "DataFilter"
+    },
+    {
+      "source": "fb47ff035a59771ad5e0",
+      "target": "a9d370ca1b8a9fa24fbb",
+      "type": "DataFilter"
+    },
+    {
+      "source": "fb47ff035a59771ad5e0",
+      "target": "d961860acb70ebf0b2ad",
+      "type": "DataFilter"
+    }
+  ]
+}

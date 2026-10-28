@@ -1,0 +1,138 @@
+table Fato_Fresagem
+	excludeFromModelRefresh
+	lineageTag: 9c1fc3ac-6333-4a3a-93e1-25474751f444
+
+	measure Meta = ```
+			9000
+			    
+			```
+		formatString: 0
+		lineageTag: acffefe2-7d7c-4562-90ff-811f1cb6144a
+
+	column timerName
+		dataType: string
+		lineageTag: 3f1589f6-a0fe-40fa-b9ae-9e1d0ca14a7f
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Line
+		dataType: string
+		lineageTag: bc180b99-9d20-4c35-9247-6b328dc0d737
+		summarizeBy: none
+		sourceColumn: Line
+
+		annotation SummarizationSetBy = Automatic
+
+	column subindex
+		dataType: string
+		lineageTag: 308e7a70-bae9-4136-8962-5a09732cdfd3
+		summarizeBy: none
+		sourceColumn: subindex
+
+		annotation SummarizationSetBy = Automatic
+
+	column pontos_entre_fresas
+		dataType: string
+		lineageTag: c22c982c-5857-4361-9d59-e7dc33561ce5
+		summarizeBy: none
+		sourceColumn: pontos_entre_fresas
+
+		annotation SummarizationSetBy = Automatic
+
+	column quant_fresagem
+		dataType: string
+		lineageTag: 452ed5a7-bae7-4aea-a7c5-e05e75dc32b3
+		summarizeBy: none
+		sourceColumn: quant_fresagem
+
+		annotation SummarizationSetBy = Automatic
+
+	column vida_eletrodo
+		dataType: double
+		formatString: 0
+		lineageTag: 30f7ac36-5ced-43bc-8c97-346ab3741ec5
+		summarizeBy: sum
+		sourceColumn: vida_eletrodo
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column _timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 412cd6ad-544d-4f6a-9386-4a1c936bc622
+		summarizeBy: none
+		sourceColumn: _timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fato_Fresagem = m
+		mode: import
+		source = ```
+				let
+				    SqlString = "
+				        WITH RawData AS (
+				            SELECT 
+				                REGEXP_EXTRACT(Topic, r'^(?:[^/]+/){4}([^/]+)') AS Line, 
+				                REPLACE(JSON_EXTRACT_SCALAR(Payload, '$.timerName'), 'WB', 'R') AS timerName,
+				                JSON_EXTRACT_SCALAR(Payload, '$.subIndex') AS subindex,
+				                JSON_EXTRACT_SCALAR(Payload, '$.param_ID') AS param_ID,
+				                JSON_EXTRACT_SCALAR(Payload, '$.value') AS value,
+				                
+				                -- Extraindo o timestamp do JSON, convertendo para número e depois para TIMESTAMP real
+				                TIMESTAMP_MILLIS(CAST(JSON_EXTRACT_SCALAR(Payload, '$._timestamp') AS INT64)) AS _timestamp
+				                
+				            FROM 
+				                `data-lake-manufacturing.Analytics_emille.vw_rawpubsubdata`
+				            WHERE 
+				                TIMESTAMP >= TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 4 MONTH))
+				                AND Topic LIKE '%DataProducts%ExtParamValues%'
+				        ),
+				        LatestData AS (
+				            SELECT *
+				            FROM RawData
+				            QUALIFY ROW_NUMBER() OVER (
+				                PARTITION BY timerName, subindex, param_ID 
+				                ORDER BY _timestamp DESC -- Agora garantimos que pega o registro mais recente!
+				            ) = 1
+				        )
+				        SELECT
+				            Line,
+				            timerName,
+				            subindex,
+				            MAX(_timestamp) AS _timestamp, -- Traz a data/hora mais recente da combinação
+				            
+				            MAX(CASE WHEN param_ID = '90' THEN value END) AS pontos_entre_fresas,
+				            MAX(CASE WHEN param_ID = '91' THEN value END) AS quant_fresagem,
+				            
+				            CAST(MAX(CASE WHEN param_ID = '90' THEN value END) AS FLOAT64) * 
+				            CAST(MAX(CASE WHEN param_ID = '91' THEN value END) AS FLOAT64) AS vida_eletrodo
+				            
+				        FROM LatestData
+				        GROUP BY 
+				            Line, 
+				            timerName, 
+				            subindex
+				    ",
+				    // 1. Conecta ao banco do Google BigQuery
+				    BQ = GoogleBigQuery.Database(),
+				    
+				    // 2. Seleciona o Projeto onde a query será executada
+				    Projeto = BQ{[Name="data-lake-manufacturing"]}[Data],
+				    
+				    // 3. Executa a string SQL diretamente no projeto
+				    Fonte = Value.NativeQuery(Projeto, SqlString, null, [EnableFolding=true]),
+				
+				    // 4. Mantém a etapa de filtragem que você adicionou
+				    #"Linhas filtradas" = Table.SelectRows(Fonte, each ([pontos_entre_fresas] <> null and [pontos_entre_fresas] <> "0"))
+				in
+				    #"Linhas filtradas"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação
+

@@ -1,0 +1,66 @@
+EVALUATE
+VAR Top20 =
+    TOPN (
+        20,
+        SUMMARIZECOLUMNS (
+            Dim_Pinca[pinca],
+            FILTER ( VALUES ( Fato_Solda[pha2] ), Fato_Solda[pha2] <> 0 ),
+            FILTER (
+                VALUES ( Dim_Pinca[pinca] ),
+                NOT Dim_Pinca[pinca]
+                    IN { "PPA50R01", "PPA52R04", "PPA52R01",
+                         "PPA50R04", "PPS065R01", "OFD020R09" }
+            ),
+            FILTER (
+                VALUES ( Dim_Data[Data] ),
+                Dim_Data[Data] >= EDATE ( TODAY () + 1, -12 )
+                    && Dim_Data[Data] <= TODAY ()
+            ),
+            "score", [Score]
+        ),
+        [score], DESC,
+        Dim_Pinca[pinca], ASC
+    )
+VAR Nomes =
+    SELECTCOLUMNS ( Top20, "pinca", Dim_Pinca[pinca] )
+VAR Timers =
+    SELECTCOLUMNS (
+        CALCULATETABLE (
+            SUMMARIZE ( Dim_Pinca, Dim_Pinca[robo] ),
+            TREATAS ( Nomes, Dim_Pinca[pinca] )
+        ),
+        "timerName", Dim_Pinca[robo]
+    )
+RETURN
+    SUMMARIZECOLUMNS (
+        Dim_Robo[timerName],
+        Fato_Erro[error_code],
+        TREATAS ( Timers, Dim_Robo[timerName] ),
+        FILTER (
+            VALUES ( Dim_Data[Data] ),
+            Dim_Data[Data] >= TODAY () - 30
+                && Dim_Data[Data] <= TODAY ()
+        ),
+        FILTER (
+            VALUES ( Fato_Erro[errorCode1_txt] ),
+            Fato_Erro[errorCode1_txt]
+                IN { "Ciclo bloqueado",
+                     "PSQ erro",
+                     "Não há conexão ao CS",
+                     "Erro de solda",
+                     "Abastecimento 24V desligado/insuficiente",
+                     "Diodo defeituoso",
+                     "Erro hardware",
+                     "Memória deletada",
+                     "Não há programa de solda",
+                     "Pot. demas. alta (Val. nom.)",
+                     "Q parada",
+                     "Restaurar dados ativo",
+                     "Sobrecorrente ou erro terra",
+                     "Temp. transformador dem. alta",
+                     "Tempo de solda interrompido/falta de corrente",
+                     "Tensão de rede desligada/insuficiente" }
+        ),
+        "qtd", SUM ( Fato_Erro[total_erros] )
+    )
+ORDER BY Dim_Robo[timerName], [qtd] DESC

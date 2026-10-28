@@ -1,0 +1,86 @@
+table Fato_Splash_Diario
+	lineageTag: c9ee24ee-6d55-4e02-a0a3-0f714c439b59
+
+	column soldas
+		formatString: 0
+		lineageTag: 558a1447-87ca-47c6-9324-657bd572e88d
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [soldas]
+
+		annotation SummarizationSetBy = Automatic
+
+	column splashes
+		formatString: 0
+		lineageTag: e3a0b2ad-8e65-4e01-abd7-0014f467cf02
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [splashes]
+
+		annotation SummarizationSetBy = Automatic
+
+	column medindo
+		formatString: 0
+		lineageTag: 552b4713-0a07-4007-a51e-db3b29965796
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [medindo]
+
+		annotation SummarizationSetBy = Automatic
+
+	column splash_dia
+		lineageTag: c896cd36-8873-4057-ab85-74fc6eaaa43c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [splash_dia]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column electrodeNo
+		lineageTag: 687f1850-2ee1-4534-a495-e39a4217a826
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fato_Solda[electrodeNo]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		formatString: General Date
+		lineageTag: a26a8842-6a2b-4d69-82d3-5aceade9f5f5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fato_Solda[Data]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fato_Splash_Diario = calculated
+		mode: import
+		source = ```
+				
+				VAR _G =
+				    ADDCOLUMNS(
+				        SUMMARIZE(
+				            Fato_Solda,
+				            Fato_Solda[electrodeNo],
+				            Fato_Solda[Data]
+				        ),
+				        "soldas",   CALCULATE( SUM( Fato_Solda[row_count] ) ),
+				        "splashes", CALCULATE( SUM( Fato_Solda[count_Tem_Splash] ) ),
+				        "medindo",  COALESCE(
+				                        CALCULATE(
+				                            SUM( Fato_Solda[row_count] ),
+				                            Fato_Solda[Status_Measuring] = "Ligado"
+				                        ), 0 )
+				    )
+				RETURN
+				    ADDCOLUMNS(
+				        FILTER( _G, [soldas] > 0 ),
+				        "splash_dia", DIVIDE( [splashes], [soldas] )
+				    )
+				
+				```
+
+	annotation PBI_Id = fb56d0c17da0477b98b5fee7920d406d
+

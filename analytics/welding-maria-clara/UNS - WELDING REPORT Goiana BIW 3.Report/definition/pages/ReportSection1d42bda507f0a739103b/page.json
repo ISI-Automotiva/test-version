@@ -1,0 +1,519 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "ReportSection1d42bda507f0a739103b",
+  "displayName": "1.2 STATUS PSQ",
+  "displayOption": "FitToPage",
+  "height": 800,
+  "width": 1500,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter186d939f8628a95b0b25",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fato_Solda"
+              }
+            },
+            "Property": "Modelo"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Fato_Solda",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Not": {
+                  "Expression": {
+                    "In": {
+                      "Expressions": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "e"
+                              }
+                            },
+                            "Property": "Modelo"
+                          }
+                        }
+                      ],
+                      "Values": [
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'None'"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "6576d714fac4657332f4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fato_Erro"
+              }
+            },
+            "Property": "errorCode1_txt"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Fato_Erro",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "e"
+                          }
+                        },
+                        "Property": "errorCode1_txt"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Temp. transformador dem. alta'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Ciclo bloqueado'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'PSQ erro'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Não há conexão ao CS'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Erro de solda'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Abastecimento 24V desligado/insuficiente'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Diodo defeituoso'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Erro hardware'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Mem��ria deletada'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Não há programa de solda'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Pot. demas. alta (Val. nom.)'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Q parada'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Restaurar dados ativo'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Sobrecorrente ou erro terra'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Tempo de solda interrompido/falta de corrente'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Tensão de rede desligada/insuficiente'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "Pod9",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  },
+  "objects": {
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "ThemeDataColor": {
+                    "ColorId": 0,
+                    "Percent": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "border": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F3F3F3'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "35640f8f6cc91bf99bd3",
+      "target": "632bb96dfc47f32b58e7",
+      "type": "DataFilter"
+    },
+    {
+      "source": "35640f8f6cc91bf99bd3",
+      "target": "f5b4b1caaf245a20cfe4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "35640f8f6cc91bf99bd3",
+      "target": "3beb389612b7fafffd0f",
+      "type": "DataFilter"
+    },
+    {
+      "source": "35640f8f6cc91bf99bd3",
+      "target": "8072a4e427d14b5daf39",
+      "type": "DataFilter"
+    },
+    {
+      "source": "632bb96dfc47f32b58e7",
+      "target": "35640f8f6cc91bf99bd3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "632bb96dfc47f32b58e7",
+      "target": "f5b4b1caaf245a20cfe4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "632bb96dfc47f32b58e7",
+      "target": "3beb389612b7fafffd0f",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f5b4b1caaf245a20cfe4",
+      "target": "35640f8f6cc91bf99bd3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f5b4b1caaf245a20cfe4",
+      "target": "632bb96dfc47f32b58e7",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f5b4b1caaf245a20cfe4",
+      "target": "3beb389612b7fafffd0f",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3beb389612b7fafffd0f",
+      "target": "f5b4b1caaf245a20cfe4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3beb389612b7fafffd0f",
+      "target": "632bb96dfc47f32b58e7",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3beb389612b7fafffd0f",
+      "target": "8072a4e427d14b5daf39",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3beb389612b7fafffd0f",
+      "target": "35640f8f6cc91bf99bd3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "343cde2beeaadf79aa49",
+      "target": "35640f8f6cc91bf99bd3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "343cde2beeaadf79aa49",
+      "target": "3beb389612b7fafffd0f",
+      "type": "DataFilter"
+    },
+    {
+      "source": "343cde2beeaadf79aa49",
+      "target": "632bb96dfc47f32b58e7",
+      "type": "DataFilter"
+    },
+    {
+      "source": "343cde2beeaadf79aa49",
+      "target": "8072a4e427d14b5daf39",
+      "type": "DataFilter"
+    },
+    {
+      "source": "343cde2beeaadf79aa49",
+      "target": "ad9e5f8e5b16358e2e67",
+      "type": "DataFilter"
+    },
+    {
+      "source": "343cde2beeaadf79aa49",
+      "target": "f5b4b1caaf245a20cfe4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "35640f8f6cc91bf99bd3",
+      "target": "343cde2beeaadf79aa49",
+      "type": "DataFilter"
+    },
+    {
+      "source": "35640f8f6cc91bf99bd3",
+      "target": "ad9e5f8e5b16358e2e67",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3beb389612b7fafffd0f",
+      "target": "343cde2beeaadf79aa49",
+      "type": "DataFilter"
+    },
+    {
+      "source": "3beb389612b7fafffd0f",
+      "target": "ad9e5f8e5b16358e2e67",
+      "type": "DataFilter"
+    },
+    {
+      "source": "632bb96dfc47f32b58e7",
+      "target": "343cde2beeaadf79aa49",
+      "type": "DataFilter"
+    },
+    {
+      "source": "632bb96dfc47f32b58e7",
+      "target": "8072a4e427d14b5daf39",
+      "type": "DataFilter"
+    },
+    {
+      "source": "632bb96dfc47f32b58e7",
+      "target": "ad9e5f8e5b16358e2e67",
+      "type": "DataFilter"
+    },
+    {
+      "source": "8072a4e427d14b5daf39",
+      "target": "343cde2beeaadf79aa49",
+      "type": "DataFilter"
+    },
+    {
+      "source": "8072a4e427d14b5daf39",
+      "target": "35640f8f6cc91bf99bd3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "8072a4e427d14b5daf39",
+      "target": "3beb389612b7fafffd0f",
+      "type": "DataFilter"
+    },
+    {
+      "source": "8072a4e427d14b5daf39",
+      "target": "632bb96dfc47f32b58e7",
+      "type": "DataFilter"
+    },
+    {
+      "source": "8072a4e427d14b5daf39",
+      "target": "ad9e5f8e5b16358e2e67",
+      "type": "DataFilter"
+    },
+    {
+      "source": "8072a4e427d14b5daf39",
+      "target": "f5b4b1caaf245a20cfe4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ad9e5f8e5b16358e2e67",
+      "target": "343cde2beeaadf79aa49",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ad9e5f8e5b16358e2e67",
+      "target": "35640f8f6cc91bf99bd3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ad9e5f8e5b16358e2e67",
+      "target": "3beb389612b7fafffd0f",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ad9e5f8e5b16358e2e67",
+      "target": "632bb96dfc47f32b58e7",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ad9e5f8e5b16358e2e67",
+      "target": "8072a4e427d14b5daf39",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ad9e5f8e5b16358e2e67",
+      "target": "f5b4b1caaf245a20cfe4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f5b4b1caaf245a20cfe4",
+      "target": "343cde2beeaadf79aa49",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f5b4b1caaf245a20cfe4",
+      "target": "8072a4e427d14b5daf39",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f5b4b1caaf245a20cfe4",
+      "target": "ad9e5f8e5b16358e2e67",
+      "type": "DataFilter"
+    }
+  ]
+}

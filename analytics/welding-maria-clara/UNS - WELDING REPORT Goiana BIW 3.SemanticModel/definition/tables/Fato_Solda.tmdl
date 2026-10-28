@@ -1,0 +1,2080 @@
+table Fato_Solda
+	lineageTag: 18415d83-10fe-489f-80ae-aab040dbe6c6
+
+	measure '% Splash' = ```
+			SUM(Fato_Solda[count_Tem_Splash]) / SUM(Fato_Solda[row_count])+0
+			    
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: bd311f05-bfa4-4dd3-988b-41338870f7e5
+
+	/// Nivel dos ULTIMOS 30 DIAS contra o baseline, em fracao. Antes era MEDIAN sobre 360 dias -- um ANO, apesar do "1M" no nome -- e mediana de LINHA, nao de dia. Agora e a media das MEDIAS DIARIAS da janela de 30 dias que termina no ultimo dia com pha2 > 0, e nao na borda do slicer: slicer esticado alem do fim dos dados esvaziava a janela. Mesma unidade de [Δ BL|1D pha2] (ponto de dia contra baseline), o que importa porque o [Score] mede as duas com o mesmo teto de 0,33. Dia sem solda devolve BLANK e sai da media, nao entra como zero.
+	measure 'Δ BL|1M pha2' = ```
+			
+			VAR _BL  = [Baseline pha2]
+			VAR _Fim =
+			    CALCULATE( MAX( 'Fato_Solda'[Data] ), 'Fato_Solda'[pha2] > 0 )
+			VAR _Dias =
+			    CALCULATETABLE(
+			        VALUES( 'Dim_Data'[Data] ),
+			        DATESINPERIOD( 'Dim_Data'[Data], _Fim, -30, DAY )
+			    )
+			VAR _Mes =
+			    AVERAGEX(
+			        _Dias,
+			        CALCULATE( AVERAGE( 'Fato_Solda'[pha2] ), 'Fato_Solda'[pha2] > 0 )
+			    )
+			RETURN
+			    IF( ISBLANK( _BL ) || ISBLANK( _Mes ), BLANK(),
+			        DIVIDE( _Mes - _BL, _BL ) )
+			
+			
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: a4c8c561-f6dc-4bf7-b9e8-2b9db61bb312
+
+	/// Nivel do ULTIMO DIA com medicao contra o baseline, em fracao. Antes era MEDIAN sobre TODO o periodo filtrado, o que nao e "1D": devolvia a distancia historica media do robo, nao a de hoje. Agora acha o ultimo dia com pha2 > 0 dentro do filtro e usa a MEDIA desse dia -- a mesma conta da serie diaria (Fato_PHA2_Diario = AVG(pha2) por dia) e do grafico "Media de pha2". Media NAO ponderada por row_count, de proposito, para bater com o grafico. Vazio sem baseline ou sem dia com medicao.
+	measure 'Δ BL|1D pha2' =
+			
+			VAR _BL  = [Baseline pha2]
+			VAR _UltDia =
+			    CALCULATE(
+			        MAX( 'Fato_Solda'[Data] ),
+			        'Fato_Solda'[pha2] > 0
+			    )
+			VAR _Dia =
+			    CALCULATE(
+			        AVERAGE( 'Fato_Solda'[pha2] ),
+			        'Fato_Solda'[Data] = _UltDia,
+			        'Fato_Solda'[pha2] > 0
+			    )
+			RETURN
+			    IF( ISBLANK( _BL ) || ISBLANK( _Dia ), BLANK(),
+			        DIVIDE( _Dia - _BL, _BL ) )
+		lineageTag: 7d62e2dc-e138-4691-93bb-49bb804c9bec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'β1 pha2' =
+			
+			VAR _Pinca = SELECTEDVALUE( Fato_Solda[electrodeNo] )
+			VAR _Fim   = MAX( Fato_Solda[Data] )
+			VAR _Ini   = _Fim - 364                                  -- W = 365 d, fixo
+			VAR _S = FILTER(
+			             CALCULATETABLE( Fato_PHA2_Diario,
+			                 REMOVEFILTERS( Fato_PHA2_Diario[timerName] ),
+			                 Fato_PHA2_Diario[timerName] = _Pinca ),
+			             Fato_PHA2_Diario[Data] >= _Ini
+			             && Fato_PHA2_Diario[Data] <= _Fim )
+			VAR _MinX = MINX( _S, INT( Fato_PHA2_Diario[Data] ) )
+			VAR _MaxX = MAXX( _S, INT( Fato_PHA2_Diario[Data] ) )
+			VAR _MinY = MINX( _S, Fato_PHA2_Diario[pha2_dia] )
+			VAR _MaxY = MAXX( _S, Fato_PHA2_Diario[pha2_dia] )
+			VAR _N = ADDCOLUMNS( _S,
+			        "Xn", DIVIDE( INT( Fato_PHA2_Diario[Data] ) - _MinX, _MaxX - _MinX ),
+			        "Yn", DIVIDE( Fato_PHA2_Diario[pha2_dia] - _MinY, _MaxY - _MinY ) )
+			VAR _mx = AVERAGEX( _N, [Xn] )
+			VAR _my = AVERAGEX( _N, [Yn] )
+			VAR _D  = ADDCOLUMNS( _N, "dx", [Xn] - _mx, "dy", [Yn] - _my )
+			VAR _cov = SUMX( _D, [dx] * [dy] )
+			VAR _var = SUMX( _D, [dx] * [dx] )
+			RETURN IF( _var = 0, BLANK(), DEGREES( ATAN( DIVIDE( _cov, _var ) ) ) )
+		lineageTag: 6ff2585f-1180-45f8-ad8f-65a05e845c30
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'β0 pha2' = ```
+			
+			VAR CurrPinca = SELECTEDVALUE('Fato_Solda'[electrodeNo])
+			VAR BaseFiltrada =
+			    CALCULATETABLE(
+			        'Fato_Solda',
+			        REMOVEFILTERS('Fato_Solda'[electrodeNo]),
+			        'Fato_Solda'[electrodeNo] = CurrPinca
+			    )
+			VAR MediaX = AVERAGEX(BaseFiltrada, 'Fato_Solda'[X_Eixo])
+			VAR MediaY = AVERAGEX(BaseFiltrada, 'Fato_Solda'[pha2])
+			VAR beta1 =
+			    VAR TabelaDif =
+			        ADDCOLUMNS(
+			            BaseFiltrada,
+			            "DifX", 'Fato_Solda'[X_Eixo] - MediaX,
+			            "DifY", 'Fato_Solda'[pha2] - MediaY
+			        )
+			    VAR CovXY = SUMX(TabelaDif, [DifX] * [DifY])
+			    VAR VariX = SUMX(TabelaDif, [DifX] * [DifX])
+			    RETURN IF(VariX = 0, BLANK(), CovXY / VariX)
+			RETURN
+			    MediaY - beta1 * MediaX
+			
+			```
+		lineageTag: 970f5c65-5c1e-4cdf-97c0-d4f60f138ed6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'β1 pha2_norm' =
+			
+			VAR _Pinca = SELECTEDVALUE( Fato_Solda[electrodeNo] )
+			VAR _Fim   = MAX( Fato_Solda[Data] )
+			VAR _Ini   = _Fim - 364
+			VAR _S = FILTER(
+			             CALCULATETABLE( Fato_PHA2_Diario,
+			                 REMOVEFILTERS( Fato_PHA2_Diario[timerName] ),
+			                 Fato_PHA2_Diario[timerName] = _Pinca ),
+			             Fato_PHA2_Diario[Data] >= _Ini
+			             && Fato_PHA2_Diario[Data] <= _Fim )
+			VAR _MinX = MINX( _S, INT( Fato_PHA2_Diario[Data] ) )
+			VAR _MaxX = MAXX( _S, INT( Fato_PHA2_Diario[Data] ) )
+			VAR _MinY = MINX( _S, Fato_PHA2_Diario[pha2_dia] )
+			VAR _MaxY = MAXX( _S, Fato_PHA2_Diario[pha2_dia] )
+			VAR _N = ADDCOLUMNS( _S,
+			        "W",  EXP( -0.17 * ( _Fim - Fato_PHA2_Diario[Data] ) ),   -- λ = 0,2
+			        "Xn", DIVIDE( INT( Fato_PHA2_Diario[Data] ) - _MinX, _MaxX - _MinX ),
+			        "Yn", DIVIDE( Fato_PHA2_Diario[pha2_dia] - _MinY, _MaxY - _MinY ) )
+			VAR _sw = SUMX( _N, [W] )
+			VAR _mx = DIVIDE( SUMX( _N, [Xn] * [W] ), _sw )
+			VAR _my = DIVIDE( SUMX( _N, [Yn] * [W] ), _sw )
+			VAR _D  = ADDCOLUMNS( _N, "dx", [Xn] - _mx, "dy", [Yn] - _my )
+			VAR _cov = SUMX( _D, [W] * [dx] * [dy] )
+			VAR _var = SUMX( _D, [W] * [dx] * [dx] )
+			RETURN IF( _var = 0, BLANK(), DEGREES( ATAN( DIVIDE( _cov, _var ) ) ) )
+		lineageTag: 9d5246ff-31bc-42d6-a2c6-e19003d8fa47
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Δ 1M|1M_resistanceActualValue' = ```
+			
+			VAR DataReferencia = MAX(Fato_Solda[dateTime])
+			VAR DataMesAnterior = EDATE(DataReferencia, -1) 
+			
+			VAR MediaMesAtual = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[resistanceActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataReferencia),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataReferencia)
+			    )
+			
+			VAR MediaMesAnterior = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[resistanceActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataMesAnterior),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataMesAnterior)
+			    )
+			
+			VAR Percentual = 
+			    DIVIDE(
+			        MediaMesAtual - MediaMesAnterior, 
+			        MediaMesAnterior
+			    )
+			
+			RETURN 
+			    Percentual
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 402e17ad-e687-48b7-977f-56d13247c30b
+
+	measure 'Δ 1M|1M_powerActualValue' = ```
+			
+			VAR DataReferencia = MAX(Fato_Solda[dateTime])
+			VAR DataMesAnterior = EDATE(DataReferencia, -1) 
+			
+			VAR MediaMesAtual = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[powerActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataReferencia),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataReferencia)
+			    )
+			
+			VAR MediaMesAnterior = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[powerActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataMesAnterior),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataMesAnterior)
+			    )
+			
+			VAR Percentual = 
+			    DIVIDE(
+			        MediaMesAtual - MediaMesAnterior, 
+			        MediaMesAnterior
+			    )
+			
+			RETURN 
+			    Percentual
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: a000d50b-5f2a-46bd-9eee-37e36f8d51ec
+
+	measure 'Δ 1M|1M_voltageActualValue' = ```
+			
+			VAR DataReferencia = MAX(Fato_Solda[dateTime])
+			VAR DataMesAnterior = EDATE(DataReferencia, -1)
+			VAR MediaMesAtual = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[voltageActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataReferencia),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataReferencia)
+			    )
+			
+			VAR MediaMesAnterior = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[voltageActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataMesAnterior),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataMesAnterior)
+			    )
+			
+			VAR Percentual = 
+			    DIVIDE(
+			        MediaMesAtual - MediaMesAnterior, 
+			        MediaMesAnterior
+			    )
+			
+			RETURN 
+			    Percentual
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: e364f837-3f90-4b56-a749-88840d707e23
+
+	measure 'Δ 1M|1M_energyActualValue' = ```
+			
+			VAR DataReferencia = MAX(Fato_Solda[dateTime])
+			VAR DataMesAnterior = EDATE(DataReferencia, -1)
+			
+			VAR MediaMesAtual = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[energyActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataReferencia),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataReferencia)
+			    )
+			
+			VAR MediaMesAnterior = 
+			    CALCULATE(
+			        MEDIAN(Fato_Solda[energyActualValue]),
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataMesAnterior),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataMesAnterior)
+			    )
+			
+			VAR Percentual = 
+			    DIVIDE(
+			        MediaMesAtual - MediaMesAnterior, 
+			        MediaMesAnterior
+			    )
+			
+			RETURN 
+			    Percentual
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: c6dcb1ec-7b41-42f8-84ce-b8182390814a
+
+	measure Score =
+			
+			VAR _BL = [Baseline pha2]
+			VAR _Limit_B1N  = 80.0     -- graus
+			VAR _Limit_BL1D = 0.33     -- FRACAO (= 33%). A medida devolve fracao, sem *100.
+			VAR _Limit_BL1M = 0.33     -- FRACAO (= 33%). Nao escrever 33.0 aqui.
+			VAR _Limit_B1   = 40.0     -- graus
+			
+			VAR _Val_B1N  = COALESCE( [β1 pha2_norm], 0 )
+			VAR _Val_BL1D = COALESCE( [Δ BL|1D pha2], 0 )
+			VAR _Val_BL1M = COALESCE( [Δ BL|1M pha2], 0 )
+			VAR _Val_B1   = COALESCE( [β1 pha2], 0 )
+			
+			VAR _Norm_B1N  = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			VAR _Norm_BL1D = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			VAR _Norm_BL1M = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			VAR _Norm_B1   = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			
+			VAR _T = 22
+			VAR _Score =
+			      ( _Norm_B1N  * DIVIDE( 9, _T ) )                 -- velocidade recente (λ=0,17/dia)   0,3500
+			    + ( _Norm_BL1D * DIVIDE( 4, _T ) )                 -- nivel do dia vs baseline          0,2000
+			    + ( _Norm_BL1M * DIVIDE( 3, _T ) )                 -- nivel do mes vs baseline          0,1500
+			    + ( _Norm_B1   * DIVIDE( 2, _T ) )                 -- velocidade longa (tendencia)      0,1000
+			    + ( _Norm_B1N  * _Norm_BL1D * DIVIDE( 3, _T ) )    -- interacao: rapido E alto hoje     0,1500
+			    + ( _Norm_B1   * _Norm_BL1M * DIVIDE( 1, _T ) )    -- interacao: subindo E alto no mes  0,0500
+			RETURN
+			    IF( ISBLANK( _BL ), BLANK(),
+			        ROUND( _Score * 100, 1 ) )                     -- soma das fracoes = 1 -> teto 100
+		lineageTag: c18b4c98-8fa3-40be-9190-9d5e5dbfcd8d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Baseline pha2' =
+			
+			VAR _E = SELECTEDVALUE( 'Fato_Solda'[electrodeNo] )
+			RETURN
+			    LOOKUPVALUE(
+			        Dim_Pinca[baseline],
+			        Dim_Pinca[pinca], _E      -- <<< conferir o nome da chave
+			    )
+		lineageTag: 7c551410-17a9-4b64-b73a-24c5d710ebad
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Splash (v2)' =
+			DIVIDE(
+			    SUM(Fato_Solda[count_Tem_Splash]),
+			    SUM(Fato_Solda[row_count])
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Score Splash
+		lineageTag: 98ee0159-ac90-439a-a024-ff75144596b7
+
+	/// Taxa diaria do [Robo em Foco] sobre TODAS as soldas dele. Remove Modelo/spotName/StatusDADOS de proposito: sao filtros que fatiam o dia. E a serie azul da 3.3 -- [Reta Beta S] e [Reta Beta W S] precisam remover os mesmos filtros, senao a reta descreve outra populacao que os pontos.
+	measure '% Splash (Foco)' =
+			VAR _robo = [Robô em Foco]
+			VAR _MinN = 100.0
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			VAR _Ok = FILTER ( _Dias, [@n] >= _MinN )
+			RETURN
+			    DIVIDE ( SUMX ( _Ok, [@s] ), SUMX ( _Ok, [@n] ) )
+		formatString: 0.0%
+		displayFolder: Tela 3.3
+		lineageTag: 8c761ef1-44e4-4231-b489-9ea97f4553b4
+
+	/// Inclinacao da taxa diaria de splash, em pp por dia. Positivo = piorando. Minimos quadrados ponderados pelo VOLUME do dia (a variancia de uma proporcao e p(1-p)/n, entao dia ralo pesa pouco). Ignora o filtro de data: usa sempre a janela [Janela_Beta].
+	measure Beta =
+			
+			VAR _MinDias = 7.0
+			VAR _JanelaParam = 180.0
+			
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			-- Exclui apagao de medicao (volume alto com zero splash = sensor desligado).
+			VAR _Base = FILTER ( _Dias, NOT ( [@s] = 0 && [@n] >= 500 ) )
+			VAR _xmin = MINX ( _Base, INT ( Fato_Solda[Data] ) )
+			
+			VAR _T =
+			    ADDCOLUMNS (
+			        _Base,
+			        "@x", INT ( Fato_Solda[Data] ) - _xmin + 0.0,
+			        "@y", DIVIDE ( [@s], [@n] ) * 100.0,
+			        "@w", [@n] + 0.0
+			    )
+			
+			VAR _n   = COUNTROWS ( _T )
+			VAR _W   = SUMX ( _T, [@w] )
+			VAR _Mx  = DIVIDE ( SUMX ( _T, [@w] * [@x] ), _W )
+			VAR _My  = DIVIDE ( SUMX ( _T, [@w] * [@y] ), _W )
+			VAR _Cov = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@y] - _My ) )
+			VAR _Var = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@x] - _Mx ) )
+			
+			RETURN
+			    IF (
+			        _n < _MinDias || _Var = 0 || _W = 0,
+			        BLANK (),
+			        DIVIDE ( _Cov, _Var )
+			    )
+		formatString: 0.000
+		displayFolder: Criticidade x Splash
+		lineageTag: af424116-69fd-4f9d-8df0-68e92e644bf8
+
+	/// Igual a [Beta], mas o peso tambem cai com a idade do dia (meia-vida [MeiaVida_BetaW]). MESMA janela de [Beta] -- o que diferencia e o peso, nao um corte mais curto da serie. Beta W bem maior que Beta indica piora concentrada nos ultimos dias.
+	measure 'Beta W' =
+			VAR _Lambda = DIVIDE( LN ( 2 ), 10.0 )
+			VAR _MinDias = 7.0
+			VAR _JanelaParam = 180.0
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			
+			-- Exclui apagao de medicao (volume alto com zero splash = sensor desligado).
+			VAR _Base = FILTER ( _Dias, NOT ( [@s] = 0 && [@n] >= 500 ) )
+			VAR _xmax = MAXX ( _Base, INT ( Fato_Solda[Data] ) )
+			
+			VAR _T =
+			    ADDCOLUMNS (
+			        _Base,
+			        "@x", INT ( Fato_Solda[Data] ) - _xmax + 0.0,
+			        "@y", DIVIDE ( [@s], [@n] ) * 100.0,
+			        "@w",
+			            VAR _atraso   = _xmax - INT ( Fato_Solda[Data] )
+			            VAR _expoente = - _Lambda * _atraso
+			            VAR _expSeguro = MAX ( MIN ( _expoente, 500 ), -500 )
+			            RETURN ( [@n] + 0.0 ) * EXP ( _expSeguro )
+			    )
+			
+			VAR _n   = COUNTROWS ( _T )
+			VAR _W   = SUMX ( _T, [@w] )
+			VAR _Mx  = DIVIDE ( SUMX ( _T, [@w] * [@x] ), _W )
+			VAR _My  = DIVIDE ( SUMX ( _T, [@w] * [@y] ), _W )
+			VAR _Cov = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@y] - _My ) )
+			VAR _Var = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@x] - _Mx ) )
+			
+			RETURN
+			    IF (
+			        _n < _MinDias || _Var = 0 || _W = 0,
+			        BLANK (),
+			        DIVIDE ( _Cov, _Var )
+			    )
+		displayFolder: Criticidade x Splash
+		lineageTag: d63b3ed1-0952-40a5-9f0a-a061b1044b02
+
+	/// Rotulo da estabilidade da tendencia: Consistente (R2 >= 0,50), Variavel (>= 0,20), Instavel, ou "Sem base" abaixo de Min_Dias_Beta. Qualifica a LEITURA da tendencia, nao a qualidade do dado nem a prioridade.
+	measure 'Confiança da Tendência' =
+			
+			VAR _R2   = [R2 Splash]
+			VAR _Dias = [Dias com dado]
+			VAR _MinD = 7.0
+			
+			VAR _Sufixo =
+			    IF ( ISFILTERED ( Fato_Solda[spotName] ), " (grão de ponto: ruído)", "" )
+			
+			VAR _Faixa =
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( _R2 ) && COALESCE( _Dias, 0 ) < _MinD,
+			            "Sem base (" & COALESCE( _Dias, 0 ) & " de " & INT( _MinD ) & " dias)",
+			        ISBLANK( _R2 ), "Reta indefinida",
+			        _R2 = 0,        "Sem variação",
+			        _R2 >= 0.50,    "Consistente",
+			        _R2 >= 0.20,    "Pouco estável",
+			                        "Instável"
+			    )
+			
+			RETURN _Faixa & _Sufixo
+		lineageTag: 90e010ac-5e3c-4b2c-817b-0e0a160e9815
+
+	/// Ultimo dia da janela de [Beta W], apos excluir apagao. E a ancora da reta ponderada: [Beta] ancora no INICIO da janela, [Beta W] no FIM, porque pondera por recencia.
+	measure 'Data Fim Regressão W' =
+			VAR _JanelaParam = 180.0
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			
+			-- Exclui apagao de medicao (volume alto com zero splash = sensor desligado).
+			VAR _Base = FILTER ( _Dias, NOT ( [@s] = 0 && [@n] >= 500 ) )
+			RETURN MAXX ( _Base, Fato_Solda[Data] )
+		formatString: dd/mm/yyyy
+		displayFolder: Criticidade x Splash
+		lineageTag: 11f39d1b-2ac2-4ce2-8790-14587da4ca28
+
+	/// Primeiro dia da janela de [Beta], apos excluir apagao. E a ancora (dia zero) da reta. Mesma janela de [Beta]/[β0 Splash], pelo motivo descrito em [β0 Splash].
+	measure 'Data Início Regressão S' =
+			VAR _JanelaParam = 180.0
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			
+			-- Exclui apagao de medicao (volume alto com zero splash = sensor desligado).
+			VAR _Base = FILTER ( _Dias, NOT ( [@s] = 0 && [@n] >= 500 ) )
+			RETURN MINX ( _Base, Fato_Solda[Data] )
+		formatString: dd/mm/yyyy
+		displayFolder: Criticidade x Splash
+		lineageTag: 038b653c-5fe1-4f3d-bb31-ee9f9619d87a
+
+	/// Dias com solda dentro da janela [Janela_Beta]. NUNCA devolve BLANK: e ela que explica o vazio de [Beta], [Beta W] e [R2 Splash], entao precisa mostrar o numero que reprovou no piso Min_Dias_Beta.
+	measure 'Dias com dado' =
+			VAR _JanelaParam = 180.0
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			RETURN
+			COUNTROWS (
+			    CALCULATETABLE (
+			        SUMMARIZE ( Fato_Solda, Fato_Solda[Data] ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			)
+		formatString: 0
+		lineageTag: 61fa2c8a-9394-49c4-b265-795b579d96aa
+
+	/// Robo em foco com Nivel e Score em texto -- os MESMOS valores que o mapa da 3.3 plota nos eixos X e Y.
+	measure 'Foco no Mapa' =
+			VAR _robo = [Robô em Foco]
+			VAR _x = CALCULATE ( [% Splash (v2)], REMOVEFILTERS ( Fato_Solda[timerName] ), Fato_Solda[timerName] = _robo )
+			VAR _y = CALCULATE ( [Score Splash], REMOVEFILTERS ( Fato_Solda[timerName] ), Fato_Solda[timerName] = _robo )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _robo ),
+			        _robo
+			            & IF (
+			                NOT ISBLANK ( _y ),
+			                "     |     Splash " & FORMAT ( _x, "0.0%" ) & "     |     Score " & FORMAT ( _y, "0.0" )
+			            )
+			    )
+		displayFolder: Tela 3.3
+		lineageTag: 2ff98ad3-3487-45ec-96df-25022b26a052
+
+	/// Mediana da taxa DIARIA de splash, em pontos percentuais. O grao e o dia, nao a solda (splash e booleano por solda). Diferente das Betas, SEGUE o filtro de data da pagina.
+	measure Mediana =
+			VAR _Dias =
+			    SUMMARIZE (
+			        Fato_Solda,
+			        Fato_Solda[Data],
+			        "@n", SUM ( Fato_Solda[row_count] ),
+			        "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			    )
+			RETURN
+			    IF (
+			        COUNTROWS ( _Dias ) > 0,
+			        MEDIANX ( _Dias, DIVIDE ( [@s], [@n] ) * 100.0 )
+			    )
+		formatString: 0.00
+		displayFolder: Criticidade x Splash
+		lineageTag: f82360f3-1413-4a35-99d9-a3709de636c0
+
+	/// Por que o robo nao tem [Score Splash]; vazio quando tem. Os ramos seguem a ordem das guardas do Score: aparece o primeiro motivo que reprova. Sem isso o robo sem nota sumiria da tela, e "fora da fila" seria lido como "esta bem".
+	measure 'Motivo Sem Score' =
+			VAR _sc = [Score Splash]
+			VAR _Nivel = [% Splash (v2)]
+			VAR _Splashes = COALESCE ( SUM ( Fato_Solda[count_Tem_Splash] ), 0 )
+			VAR _MinSplashes = 1.0
+			VAR _Dias = COALESCE ( [Dias com dado], 0 )
+			VAR _MinD = 7.0
+			VAR _TemMedicao =
+			    COALESCE (
+			        CALCULATE (
+			            COUNTROWS ( Fato_Solda ),
+			            REMOVEFILTERS ( Fato_Solda[Status_Measuring] ),
+			            Fato_Solda[Status_Measuring] = "Ligado"
+			        ),
+			        0
+			    ) > 0
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        NOT ISBLANK ( _sc ),        BLANK (),                         -- tem nota
+			        NOT _TemMedicao,            "Sem medição (sensor desligado)",
+			        ISBLANK ( _Nivel ),         "Sem soldas no recorte",
+			        _Splashes < _MinSplashes,   "Sem splashes suficientes",
+			        _Dias < _MinD,              "Sem dias de série (" & _Dias & " de " & INT ( _MinD ) & ")",
+			                                    "Sem critério de variação"
+			    )
+		displayFolder: Tela 3.3
+		lineageTag: 9f66d60b-5959-475d-ba2a-3f459e5af922
+
+	/// Pontos da nota vindos da ACELERACAO, ja amortecidos pela confianca do R2. Termo exato do [Score Splash].
+	measure 'Pts Aceleração' =
+			-- Componente 1 da cascata da tela 3.3. A soma dos SEIS devolve [Score Splash]
+			-- (a menos do ROUND final, que so o Score aplica).
+			VAR _Limit_B1N  = 80.0     -- graus, igual ao [Score]
+			VAR _Limit_BL1D = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_BL1M = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_B1   = 40.0     -- graus, igual ao [Score]
+			
+			VAR _Val_B1N  = COALESCE( [β1 Splash_norm (mm)], 0 )
+			VAR _Val_BL1D = COALESCE( [Δ BL|1D splash], 0 )
+			VAR _Val_BL1M = COALESCE( [Δ BL|1M splash], 0 )
+			VAR _Val_B1   = COALESCE( [β1 Splash (mm)], 0 )
+			
+			VAR _a = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			VAR _b = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			VAR _c = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			VAR _d = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			VAR _T = 22
+			RETURN
+			    ( _a * DIVIDE( 4, _T ) ) * 100
+		formatString: 0.0
+		displayFolder: Tela 3.3
+		lineageTag: c77f236a-0749-4005-bc43-0a099e983d7a
+
+	/// Pontos da nota vindos da TENDENCIA, ja amortecidos pela confianca do R2. Termo exato do [Score Splash].
+	measure 'Pts Tendência' =
+			-- Componente 4 da cascata da tela 3.3. A soma dos SEIS devolve [Score Splash]
+			-- (a menos do ROUND final, que so o Score aplica).
+			VAR _Limit_B1N  = 80.0     -- graus, igual ao [Score]
+			VAR _Limit_BL1D = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_BL1M = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_B1   = 40.0     -- graus, igual ao [Score]
+			
+			VAR _Val_B1N  = COALESCE( [β1 Splash_norm (mm)], 0 )
+			VAR _Val_BL1D = COALESCE( [Δ BL|1D splash], 0 )
+			VAR _Val_BL1M = COALESCE( [Δ BL|1M splash], 0 )
+			VAR _Val_B1   = COALESCE( [β1 Splash (mm)], 0 )
+			
+			VAR _a = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			VAR _b = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			VAR _c = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			VAR _d = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			VAR _T = 22
+			RETURN
+			    ( _d * DIVIDE( 3, _T ) ) * 100
+		formatString: 0.0
+		displayFolder: Tela 3.3
+		lineageTag: 6195874d-3a6a-4d2d-8800-8693d67430ec
+
+	/// Quanto da variacao diaria a reta de [Beta] explica, de 0 a 1. Mesmos pesos de [Beta]. Serie plana devolve 0 (tendencia nula e conhecida, nao ausencia); BLANK so abaixo de Min_Dias_Beta.
+	measure 'R2 Splash' =
+			VAR _MinDias = 7.0
+			VAR _JanelaParam = 180.0
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			
+			-- Exclui apagao de medicao (volume alto com zero splash = sensor desligado).
+			VAR _Base = FILTER ( _Dias, NOT ( [@s] = 0 && [@n] >= 500 ) )
+			
+			VAR _xmin = MINX ( _Base, INT ( Fato_Solda[Data] ) )
+			
+			VAR _T =
+			    ADDCOLUMNS (
+			        _Base,
+			        "@x", INT ( Fato_Solda[Data] ) - _xmin + 0.0,
+			        "@y", DIVIDE ( [@s], [@n] ) * 100.0,
+			        "@w", [@n] + 0.0
+			    )
+			
+			VAR _n    = COUNTROWS ( _T )
+			VAR _W    = SUMX ( _T, [@w] )
+			VAR _Mx   = DIVIDE ( SUMX ( _T, [@w] * [@x] ), _W )
+			VAR _My   = DIVIDE ( SUMX ( _T, [@w] * [@y] ), _W )
+			VAR _Cov  = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@y] - _My ) )
+			VAR _VarX = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@x] - _Mx ) )
+			VAR _VarY = SUMX ( _T, [@w] * ( [@y] - _My ) * ( [@y] - _My ) )
+			
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        _n < _MinDias, BLANK (),   -- sem dado para regredir
+			        _W = 0,        BLANK (),   -- nenhuma solda na janela
+			        _VarX = 0,     BLANK (),   -- um unico dia distinto, reta indefinida
+			        _VarY = 0,     0,          -- serie plana: tendencia conhecida e nula
+			        DIVIDE ( _Cov * _Cov, _VarX * _VarY )
+			    )
+		formatString: 0.000
+		lineageTag: 14f47eb9-15e7-499e-a26e-80fb0aa39516
+
+	/// Valor previsto pela reta de [Beta] para o dia do eixo, em fracao (0 a 1), para desenhar sobre [% Splash (Foco)]. Fixa o [Robo em Foco] e remove Modelo/spotName/StatusDADOS igual a [% Splash (Foco)].
+	measure 'Reta Beta S' =
+			VAR _robo = [Robô em Foco]
+			VAR _dia  = MAX ( Fato_Solda[Data] )
+			VAR _b =
+			    CALCULATE (
+			        [Beta],
+			        ALLSELECTED ( Fato_Solda[Data] ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			VAR _b0 =
+			    CALCULATE (
+			        [β0 Splash],
+			        ALLSELECTED ( Fato_Solda[Data] ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			VAR _ini =
+			    CALCULATE (
+			        [Data Início Regressão S],
+			        ALLSELECTED ( Fato_Solda[Data] ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			RETURN
+			    IF ( NOT ISBLANK ( _b ) && NOT ISBLANK ( _ini ) && INT ( _dia ) >= INT ( _ini ),
+			         ( _b0 + _b * ( INT ( _dia ) - INT ( _ini ) ) ) / 100 )
+		formatString: 0.0%
+		displayFolder: Criticidade x Splash
+		lineageTag: 7a2453f9-50a3-4de0-b76c-edd61bf987ac
+
+	/// Igual a [Reta Beta S], mas alimentada pela regressao ponderada. Ancora em [Data Fim Regressao W], nao no inicio da janela.
+	measure 'Reta Beta W S' =
+			VAR _robo = [Robô em Foco]
+			VAR _dia  = MAX ( Fato_Solda[Data] )
+			VAR _b =
+			    CALCULATE (
+			        [Beta W],
+			        ALLSELECTED ( Fato_Solda[Data] ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			VAR _b0 =
+			    CALCULATE (
+			        [β0 Splash W],
+			        ALLSELECTED ( Fato_Solda[Data] ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			VAR _ini =
+			    CALCULATE (
+			        [Data Início Regressão S],
+			        ALLSELECTED ( Fato_Solda[Data] ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			VAR _fim =
+			    CALCULATE (
+			        [Data Fim Regressão W],
+			        ALLSELECTED ( Fato_Solda[Data] ),
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+			RETURN
+			    IF ( NOT ISBLANK ( _b ) && NOT ISBLANK ( _fim ) && NOT ISBLANK ( _ini ) && INT ( _dia ) >= INT ( _ini ),
+			         ( _b0 + _b * ( INT ( _dia ) - INT ( _fim ) ) ) / 100 )
+		formatString: 0.0%
+		displayFolder: Criticidade x Splash
+		lineageTag: 25ae30d6-aea9-49f7-b700-e06eb6bc13d5
+
+	/// Robo que a tela 3.3 diagnostica: o selecionado no RANKING ou, sem selecao, o de maior % Splash entre os que tem nota.
+	measure 'Robô em Foco' =
+			VAR _sel = SELECTEDVALUE ( Fato_Solda[timerName] )
+			VAR _top =
+			    CALCULATE (
+			        MAXX (
+			            TOPN (
+			                1,
+			                FILTER (
+			                    ADDCOLUMNS (
+			                        ALLSELECTED ( Fato_Solda[timerName] ),
+			                        "@lvl",
+			                            CALCULATE (
+			                                DIVIDE (
+			                                    SUM ( Fato_Solda[count_Tem_Splash] ),
+			                                    SUM ( Fato_Solda[row_count] )
+			                                )
+			                            ),
+			                        "@sc", [Score Splash]
+			                    ),
+			                    NOT ISBLANK ( [@sc] )
+			                ),
+			                [@lvl], DESC,
+			                Fato_Solda[timerName], ASC
+			            ),
+			            Fato_Solda[timerName]
+			        )
+			    )
+			RETURN
+			    COALESCE ( _sel, _top )
+		displayFolder: Tela 3.3
+		lineageTag: d6d4eada-0873-4705-8a5f-e45f78f0e8a9
+
+	/// [R2 Splash] em percentual, para o cartao da 3.3 ler como "a reta explica N% da variacao diaria". Existe so pelo formato. Nao usar no Score: la o R2 entra como fracao.
+	measure 'R² Explicado' = [R2 Splash]
+		formatString: 0%
+		displayFolder: Tela 3.3
+		lineageTag: d7c62aa5-271c-4022-918a-ce4b5a4ddf9f
+
+	/// Nota de risco de splash, 0 a 100, na MESMA estrutura do [Score] de pha2: aceleracao [β1 Splash_norm], nivel do dia [Δ BL|1D Splash], nivel do mes [Δ BL|1M Splash] e tendencia [β1 Splash], pesos 4/5/5/3 sobre 19, mais risco de explosao e risco estrutural com peso 1 cada. Baseline zero: ver [Δ BL|1D Splash]. Sem gate de elegibilidade -- todo robo recebe nota, inclusive os 150 sem nenhum evento de splash no historico e os de sensor desligado, que pontuam baixo por ausencia de dado e nao por saude comprovada.
+	measure 'Score Splash' = ```
+			
+			        VAR _Med =
+			            COALESCE(
+			                CALCULATE(
+			                    SUM( Fato_Solda[row_count] ),
+			                    KEEPFILTERS( Fato_Solda[Status_Measuring] = "Ligado" )
+			                ), 0 ) > 0
+			        VAR _Limit_B1N  = 80.0
+			        VAR _Limit_BL1D = 0.70
+			        VAR _Limit_BL1M = 0.65
+			        VAR _Limit_B1   = 40.0
+			        VAR _Val_B1N  = COALESCE( [β1 splash_norm], 0 )
+			        VAR _Val_BL1D = COALESCE( [Δ BL|1D splash], 0 )
+			        VAR _Val_BL1M = COALESCE( [Δ BL|1M splash], 0 )
+			        VAR _Val_B1   = COALESCE( [β1 splash], 0 )
+			        VAR _Norm_B1N  = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			        VAR _Norm_BL1D = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			        VAR _Norm_BL1M = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			        VAR _Norm_B1   = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			        VAR _T = 28
+			        VAR _Score =
+			              ( _Norm_BL1D * DIVIDE( 15, _T ) )
+			            + ( _Norm_B1N  * DIVIDE( 5, _T ) )
+			            + ( _Norm_BL1M * DIVIDE( 3, _T ) )
+			            + ( _Norm_B1   * DIVIDE( 2, _T ) )
+			            + ( _Norm_BL1D * _Norm_B1N * DIVIDE( 2, _T ) )
+			            + ( _Norm_BL1M * _Norm_B1  * DIVIDE( 1, _T ) )
+			        RETURN
+			            IF( NOT _Med, BLANK(), ROUND( _Score * 100, 1 ) )
+			```
+		formatString: 0.0
+		lineageTag: 636e6341-2468-4600-ae9e-c3d62ce16c40
+
+	/// Ultimo dia com solda e sensor de splash LIGADO. Vazio para quem nunca foi medido, que e o sinal correto. Ignora o filtro de data da pagina.
+	measure 'Última Medição' =
+			CALCULATE (
+			    MAX ( Fato_Solda[Data] ),
+			    REMOVEFILTERS ( Fato_Solda[Status_Measuring] ),
+			    Fato_Solda[Status_Measuring] = "Ligado"
+			)
+		formatString: dd/mm/yyyy
+		displayFolder: Tela 3.3
+		lineageTag: e2a543aa-a7c5-4a6f-bba4-4ee2cca44797
+
+	/// Salto do mes corrente contra o de dois meses atras, em fracao. ATENCAO: o mes corrente entra PARCIAL, o que favorece o mes em curso. Corrigir com EOMONTH (so meses fechados) se virar problema.
+	measure 'Δ 2M|1M Splash' =
+			VAR DataReferencia = MAX(Fato_Solda[dateTime])
+			VAR DataDoisMesesAtras = EDATE(DataReferencia, -2)
+			VAR MesAtual =
+			    CALCULATE(
+			        [% Splash (v2)],
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataReferencia),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataReferencia)
+			    )
+			VAR Mes2Atras =
+			    CALCULATE(
+			        [% Splash (v2)],
+			        MONTH(Fato_Solda[dateTime]) = MONTH(DataDoisMesesAtras),
+			        YEAR(Fato_Solda[dateTime]) = YEAR(DataDoisMesesAtras)
+			    )
+			RETURN
+			    DIVIDE(MesAtual - Mes2Atras, Mes2Atras)
+		lineageTag: e72305c8-0485-4ed4-96a0-cf9a981391c6
+
+	/// Salto do ultimo dia contra a media dos 30 anteriores, em fracao. Positivo = piorou. Denominador quase zero explode a razao; quem barra isso e Min_Base_Delta, aplicado por quem consome.
+	measure 'Δ 30D|1D Splash' =
+			VAR MaxData = MAX(Fato_Solda[dateTime])
+			VAR ValorUltimaData =
+			    CALCULATE([% Splash (v2)], Fato_Solda[dateTime] = MaxData)
+			VAR DataInicial = MaxData - 30
+			VAR Media30DiasAntes =
+			    CALCULATE(
+			        [% Splash (v2)],
+			        Fato_Solda[dateTime] >= DataInicial,
+			        Fato_Solda[dateTime] < MaxData
+			    )
+			RETURN
+			    DIVIDE(ValorUltimaData - Media30DiasAntes, Media30DiasAntes)
+		lineageTag: 41379998-c6e8-49fd-83cb-e1df24b9150f
+
+	/// Intercepto da regressao de [Beta], em pontos percentuais. Le a janela do MESMO parametro [Janela_Beta]: a reta da 3.3 usa a inclinacao de [Beta] com o intercepto daqui, e janelas diferentes fazem a reta sair da nuvem sem dar erro nenhum.
+	measure 'β0 Splash' =
+			VAR _MinDias = 7.0
+			VAR _JanelaParam = 180.0
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			
+			-- Exclui apagao de medicao (volume alto com zero splash = sensor desligado).
+			VAR _Base = FILTER ( _Dias, NOT ( [@s] = 0 && [@n] >= 500 ) )
+			VAR _xmin = MINX ( _Base, INT ( Fato_Solda[Data] ) )
+			VAR _T =
+			    ADDCOLUMNS (
+			        _Base,
+			        "@x", INT ( Fato_Solda[Data] ) - _xmin + 0.0,
+			        "@y", DIVIDE ( [@s], [@n] ) * 100.0,
+			        "@w", [@n] + 0.0
+			    )
+			
+			VAR _n   = COUNTROWS ( _T )
+			VAR _W   = SUMX ( _T, [@w] )
+			VAR _Mx  = DIVIDE ( SUMX ( _T, [@w] * [@x] ), _W )
+			VAR _My  = DIVIDE ( SUMX ( _T, [@w] * [@y] ), _W )
+			VAR _Cov = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@y] - _My ) )
+			VAR _Var = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@x] - _Mx ) )
+			
+			RETURN
+			    IF (
+			        _n < _MinDias || _Var = 0 || _W = 0,
+			        BLANK (),
+			        _My - DIVIDE ( _Cov, _Var ) * _Mx
+			    )
+		displayFolder: Criticidade x Splash
+		lineageTag: 4f3875b3-fd3e-4819-92d1-ef0ffdee059b
+
+	/// Intercepto da regressao ponderada de [Beta W], em pontos percentuais. Mesma janela e mesma meia-vida de [Beta W].
+	measure 'β0 Splash W' =
+			VAR _Lambda = DIVIDE( LN ( 2 ), 10.0 )
+			VAR _MinDias = 7.0
+			VAR _JanelaParam = 180.0
+			VAR _Janela = IF ( _JanelaParam <= 0, 20000, _JanelaParam )
+			VAR _MaxPinca =
+			    MAX ( Fato_Solda[Data] )
+			
+			VAR _Dias =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            Fato_Solda,
+			            Fato_Solda[Data],
+			            "@n", SUM ( Fato_Solda[row_count] ),
+			            "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			        ),
+			        			        KEEPFILTERS ( Fato_Solda[Data] > _MaxPinca - _Janela )
+			    )
+			
+			-- Exclui apagao de medicao (volume alto com zero splash = sensor desligado).
+			VAR _Base = FILTER ( _Dias, NOT ( [@s] = 0 && [@n] >= 500 ) )
+			VAR _xmax = MAXX ( _Base, INT ( Fato_Solda[Data] ) )
+			VAR _T =
+			    ADDCOLUMNS (
+			        _Base,
+			        "@x", INT ( Fato_Solda[Data] ) - _xmax + 0.0,
+			        "@y", DIVIDE ( [@s], [@n] ) * 100.0,
+			        "@w",
+			            VAR _atraso   = _xmax - INT ( Fato_Solda[Data] )
+			            VAR _expoente = - _Lambda * _atraso
+			            VAR _expSeguro = MAX ( MIN ( _expoente, 500 ), -500 )
+			            RETURN ( [@n] + 0.0 ) * EXP ( _expSeguro )
+			    )
+			
+			VAR _n   = COUNTROWS ( _T )
+			VAR _W   = SUMX ( _T, [@w] )
+			VAR _Mx  = DIVIDE ( SUMX ( _T, [@w] * [@x] ), _W )
+			VAR _My  = DIVIDE ( SUMX ( _T, [@w] * [@y] ), _W )
+			VAR _Cov = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@y] - _My ) )
+			VAR _Var = SUMX ( _T, [@w] * ( [@x] - _Mx ) * ( [@x] - _Mx ) )
+			
+			RETURN
+			    IF (
+			        _n < _MinDias || _Var = 0 || _W = 0,
+			        BLANK (),
+			        _My - DIVIDE ( _Cov, _Var ) * _Mx
+			    )
+		displayFolder: Criticidade x Splash
+		lineageTag: 84d8c9ce-ef18-4c4e-9f9c-8ed9ce418cd5
+
+	/// [Beta] em pontos percentuais por 30 dias. So conversao de unidade.
+	measure 'β1 Splash pp30' =
+			VAR _B = [Beta]
+			RETURN
+			    IF ( NOT ISBLANK ( _B ), _B * 30.0 )
+		formatString: 0.00
+		lineageTag: adfe658a-1c61-4247-85e5-6fae51a0303d
+
+	/// [Beta W] em pontos percentuais por 30 dias. So conversao de unidade.
+	measure 'β1 Splash pp30 rec' =
+			VAR _B = [Beta W]
+			RETURN
+			    IF ( NOT ISBLANK ( _B ), _B * 30.0 )
+		formatString: 0.00
+		lineageTag: 23ca2eaf-51d0-4ae5-90d6-3bd8b5d45775
+
+	/// Distancia ao baseline, no molde de [Δ BL|1D pha2]. No pha2 o baseline e a media do decil inferior do proprio robo e a distancia e RELATIVA, DIVIDE(atual - base, base). No splash o baseline e ZERO: toda splash e defeito, nao existe nivel saudavel proprio de cada robo. Como DIVIDE(x, 0) devolve BLANK, a distancia degenera no proprio nivel (atual - 0 = atual), e a medida passa a ser TAXA ABSOLUTA de splash, nao variacao relativa. Pelo mesmo motivo caiu a clausula '_Base <= 0 -> BLANK' do original: com BL fixo em zero ela seria sempre verdadeira e a medida nunca devolveria valor. Mantem o gate de atraso > 30 dias do original.
+	measure 'Δ BL|1D splash' = ```
+			
+			        VAR _BL  = [Baseline splash]
+			        VAR _Dia =
+			            DIVIDE( SUM( Fato_Solda[count_Tem_Splash] ), SUM( Fato_Solda[row_count] ) )
+			        RETURN
+			            IF( ISBLANK( _Dia ), BLANK(), _Dia - _BL )
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Score Splash
+		lineageTag: 4026abf6-9081-4e3d-9305-af40325735c4
+
+	/// Distancia ao baseline, no molde de [Δ BL|1M pha2]. No pha2 o baseline e a media do decil inferior do proprio robo e a distancia e RELATIVA, DIVIDE(atual - base, base). No splash o baseline e ZERO: toda splash e defeito, nao existe nivel saudavel proprio de cada robo. Como DIVIDE(x, 0) devolve BLANK, a distancia degenera no proprio nivel (atual - 0 = atual), e a medida passa a ser TAXA ABSOLUTA de splash, nao variacao relativa. Pelo mesmo motivo caiu a clausula '_Base <= 0 -> BLANK' do original: com BL fixo em zero ela seria sempre verdadeira e a medida nunca devolveria valor. Media NAO ponderada das taxas diarias dos ultimos 30 dias, como o original. Sem gate de atraso, tambem como o original (la ele esta comentado).
+	measure 'Δ BL|1M splash' = ```
+			
+			        VAR _BL  = [Baseline splash]
+			        VAR _Fim = MAX( 'Dim_Data'[Data] )
+			        VAR _Mes =
+			            CALCULATE(
+			                DIVIDE( SUM( Fato_Solda[count_Tem_Splash] ), SUM( Fato_Solda[row_count] ) ),
+			                DATESINPERIOD( 'Dim_Data'[Data], _Fim, -30, DAY )
+			            )
+			        RETURN
+			            IF( ISBLANK( _Mes ), BLANK(), _Mes - _BL )
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Score Splash
+		lineageTag: e06e4ac2-eab4-482f-9694-4570cbd96fb2
+
+	/// Tendencia do splash em graus, espelhando [β1 pha2]: regressao contra a data sobre a serie diaria, janela 365 d, min-max nos dois eixos. Substitui [β1 Splash] no [Score Splash] porque aquela regride cru e nunca passa de 0,24 grau.
+	measure 'β1 Splash (mm)' =
+			-- Espelha [β1 pha2] ponto a ponto, sobre a serie DIARIA de splash: regressao
+			-- contra a DATA, janela fixa de 365 dias, min-max nos DOIS eixos, resultado em graus.
+			-- A normalizacao min-max e o ponto todo. [β1 Splash] (a antiga, que segue intacta)
+			-- regride CRU: X_Eixo vai de 0 a 243 e a taxa de 0 a 1, entao a inclinacao nao passa
+			-- de 1/243 e o angulo nao passa de 0,24 grau -- contra um teto de 40 graus no Score,
+			-- entregava menos de 1% do peso do criterio. Normalizado, o angulo usa a faixa +-45.
+			-- Constroi a serie diaria com SUMMARIZE em vez de FILTER(ALL(tabela)): nao expande a
+			-- tabela de fatos inteira, o que alem de rapido evita depender de colunas calculadas.
+			VAR _Timer = SELECTEDVALUE ( Fato_Solda[timerName] )
+			VAR _Fim   = MAX ( Fato_Solda[Data] )
+			VAR _Ini   = _Fim - 364                                  -- W = 365 d, fixo, como [β1 pha2]
+			VAR _S =
+			    FILTER (
+			        CALCULATETABLE (
+			            SUMMARIZE (
+			                Fato_Solda,
+			                Fato_Solda[Data],
+			                "@n", SUM ( Fato_Solda[row_count] ),
+			                "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			            )
+			        ),
+			        Fato_Solda[Data] >= _Ini && Fato_Solda[Data] <= _Fim
+			    )
+			VAR _T0   = ADDCOLUMNS ( _S, "@y", DIVIDE ( [@s], [@n] ) )
+			VAR _MinX = MINX ( _T0, INT ( Fato_Solda[Data] ) )
+			VAR _MaxX = MAXX ( _T0, INT ( Fato_Solda[Data] ) )
+			VAR _MinY = MINX ( _T0, [@y] )
+			VAR _MaxY = MAXX ( _T0, [@y] )
+			VAR _N =
+			    ADDCOLUMNS (
+			        _T0,
+			        "Xn", DIVIDE ( INT ( Fato_Solda[Data] ) - _MinX, _MaxX - _MinX ),
+			        "Yn", DIVIDE ( [@y] - _MinY, _MaxY - _MinY )
+			    )
+			VAR _mx  = AVERAGEX ( _N, [Xn] )
+			VAR _my  = AVERAGEX ( _N, [Yn] )
+			VAR _D   = ADDCOLUMNS ( _N, "dx", [Xn] - _mx, "dy", [Yn] - _my )
+			VAR _cov = SUMX ( _D, [dx] * [dy] )
+			VAR _var = SUMX ( _D, [dx] * [dx] )
+			RETURN
+			    IF ( _var = 0, BLANK (), DEGREES ( ATAN ( DIVIDE ( _cov, _var ) ) ) )
+		formatString: 0.00
+		displayFolder: Score Splash
+		lineageTag: cbb3ce46-38ad-48b9-b336-401dc33df93b
+
+	/// Como [β1 Splash (mm)], com peso de recencia EXP(-0,17 * atraso), espelhando [β1 pha2_norm]. E o criterio de 'aceleracao' do [Score Splash].
+	measure 'β1 Splash_norm (mm)' =
+			-- Espelha [β1 pha2_norm] ponto a ponto, sobre a serie DIARIA de splash: regressao
+			-- contra a DATA, janela fixa de 365 dias, min-max nos DOIS eixos, resultado em graus.
+			-- A normalizacao min-max e o ponto todo. [β1 Splash] (a antiga, que segue intacta)
+			-- regride CRU: X_Eixo vai de 0 a 243 e a taxa de 0 a 1, entao a inclinacao nao passa
+			-- de 1/243 e o angulo nao passa de 0,24 grau -- contra um teto de 80 graus no Score,
+			-- entregava menos de 1% do peso do criterio. Normalizado, o angulo usa a faixa +-45.
+			-- Constroi a serie diaria com SUMMARIZE em vez de FILTER(ALL(tabela)): nao expande a
+			-- tabela de fatos inteira, o que alem de rapido evita depender de colunas calculadas.
+			-- Peso de recencia EXP(-0,17 * atraso), o mesmo expoente de [β1 pha2_norm].
+			VAR _Timer = SELECTEDVALUE ( Fato_Solda[timerName] )
+			VAR _Fim   = MAX ( Fato_Solda[Data] )
+			VAR _Ini   = _Fim - 364                                  -- W = 365 d, fixo, como [β1 pha2]
+			VAR _S =
+			    FILTER (
+			        CALCULATETABLE (
+			            SUMMARIZE (
+			                Fato_Solda,
+			                Fato_Solda[Data],
+			                "@n", SUM ( Fato_Solda[row_count] ),
+			                "@s", SUM ( Fato_Solda[count_Tem_Splash] )
+			            )
+			        ),
+			        Fato_Solda[Data] >= _Ini && Fato_Solda[Data] <= _Fim
+			    )
+			VAR _T0   = ADDCOLUMNS ( _S, "@y", DIVIDE ( [@s], [@n] ) )
+			VAR _MinX = MINX ( _T0, INT ( Fato_Solda[Data] ) )
+			VAR _MaxX = MAXX ( _T0, INT ( Fato_Solda[Data] ) )
+			VAR _MinY = MINX ( _T0, [@y] )
+			VAR _MaxY = MAXX ( _T0, [@y] )
+			VAR _N =
+			    ADDCOLUMNS (
+			        _T0,
+			        "W",  EXP ( -0.17 * ( _Fim - Fato_Solda[Data] ) ),
+			        "Xn", DIVIDE ( INT ( Fato_Solda[Data] ) - _MinX, _MaxX - _MinX ),
+			        "Yn", DIVIDE ( [@y] - _MinY, _MaxY - _MinY )
+			    )
+			VAR _sw  = SUMX ( _N, [W] )
+			VAR _mx  = DIVIDE ( SUMX ( _N, [Xn] * [W] ), _sw )
+			VAR _my  = DIVIDE ( SUMX ( _N, [Yn] * [W] ), _sw )
+			VAR _D   = ADDCOLUMNS ( _N, "dx", [Xn] - _mx, "dy", [Yn] - _my )
+			VAR _cov = SUMX ( _D, [W] * [dx] * [dy] )
+			VAR _var = SUMX ( _D, [W] * [dx] * [dx] )
+			RETURN
+			    IF ( _var = 0, BLANK (), DEGREES ( ATAN ( DIVIDE ( _cov, _var ) ) ) )
+		formatString: 0.00
+		displayFolder: Score Splash
+		lineageTag: c4851eb0-4e32-4426-8f3c-53f0465e3211
+
+	measure 'Pts Nível Dia' =
+			-- Componente 2 da cascata da tela 3.3. A soma dos SEIS devolve [Score Splash]
+			-- (a menos do ROUND final, que so o Score aplica).
+			VAR _Limit_B1N  = 80.0     -- graus, igual ao [Score]
+			VAR _Limit_BL1D = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_BL1M = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_B1   = 40.0     -- graus, igual ao [Score]
+			
+			VAR _Val_B1N  = COALESCE( [β1 Splash_norm (mm)], 0 )
+			VAR _Val_BL1D = COALESCE( [Δ BL|1D splash], 0 )
+			VAR _Val_BL1M = COALESCE( [Δ BL|1M splash], 0 )
+			VAR _Val_B1   = COALESCE( [β1 Splash (mm)], 0 )
+			
+			VAR _a = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			VAR _b = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			VAR _c = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			VAR _d = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			VAR _T = 22
+			RETURN
+			    ( _b * DIVIDE( 5, _T ) ) * 100
+		formatString: 0.0
+		displayFolder: Tela 3.3
+		lineageTag: fff5297d-c3d7-48ba-b2b0-a42738e45a3a
+
+	measure 'Pts Nível Mês' =
+			-- Componente 3 da cascata da tela 3.3. A soma dos SEIS devolve [Score Splash]
+			-- (a menos do ROUND final, que so o Score aplica).
+			VAR _Limit_B1N  = 80.0     -- graus, igual ao [Score]
+			VAR _Limit_BL1D = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_BL1M = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_B1   = 40.0     -- graus, igual ao [Score]
+			
+			VAR _Val_B1N  = COALESCE( [β1 Splash_norm (mm)], 0 )
+			VAR _Val_BL1D = COALESCE( [Δ BL|1D splash], 0 )
+			VAR _Val_BL1M = COALESCE( [Δ BL|1M splash], 0 )
+			VAR _Val_B1   = COALESCE( [β1 Splash (mm)], 0 )
+			
+			VAR _a = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			VAR _b = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			VAR _c = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			VAR _d = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			VAR _T = 22
+			RETURN
+			    ( _c * DIVIDE( 8, _T ) ) * 100
+		formatString: 0.0
+		displayFolder: Tela 3.3
+		lineageTag: 04a49439-cb82-4f41-9c45-3aac5748c805
+
+	measure 'Pts Risco Explosão' =
+			-- Componente 5 da cascata da tela 3.3. A soma dos SEIS devolve [Score Splash]
+			-- (a menos do ROUND final, que so o Score aplica).
+			VAR _Limit_B1N  = 80.0     -- graus, igual ao [Score]
+			VAR _Limit_BL1D = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_BL1M = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_B1   = 40.0     -- graus, igual ao [Score]
+			
+			VAR _Val_B1N  = COALESCE( [β1 Splash_norm (mm)], 0 )
+			VAR _Val_BL1D = COALESCE( [Δ BL|1D splash], 0 )
+			VAR _Val_BL1M = COALESCE( [Δ BL|1M splash], 0 )
+			VAR _Val_B1   = COALESCE( [β1 Splash (mm)], 0 )
+			
+			VAR _a = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			VAR _b = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			VAR _c = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			VAR _d = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			VAR _T = 22
+			RETURN
+			    ( _a * _b * DIVIDE( 1, _T ) ) * 100
+		formatString: 0.0
+		displayFolder: Tela 3.3
+		lineageTag: 8b49ecce-9f9d-4e78-9c88-ad9eeca95d51
+
+	measure 'Pts Risco Estrutural' =
+			-- Componente 6 da cascata da tela 3.3. A soma dos SEIS devolve [Score Splash]
+			-- (a menos do ROUND final, que so o Score aplica).
+			VAR _Limit_B1N  = 80.0     -- graus, igual ao [Score]
+			VAR _Limit_BL1D = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_BL1M = 0.85     -- taxa de splash, 0 a 1
+			VAR _Limit_B1   = 40.0     -- graus, igual ao [Score]
+			
+			VAR _Val_B1N  = COALESCE( [β1 Splash_norm (mm)], 0 )
+			VAR _Val_BL1D = COALESCE( [Δ BL|1D splash], 0 )
+			VAR _Val_BL1M = COALESCE( [Δ BL|1M splash], 0 )
+			VAR _Val_B1   = COALESCE( [β1 Splash (mm)], 0 )
+			
+			VAR _a = DIVIDE( IF(_Val_B1N <0,0,IF(_Val_B1N >_Limit_B1N, _Limit_B1N, _Val_B1N )), _Limit_B1N  )
+			VAR _b = DIVIDE( IF(_Val_BL1D<0,0,IF(_Val_BL1D>_Limit_BL1D,_Limit_BL1D,_Val_BL1D)), _Limit_BL1D )
+			VAR _c = DIVIDE( IF(_Val_BL1M<0,0,IF(_Val_BL1M>_Limit_BL1M,_Limit_BL1M,_Val_BL1M)), _Limit_BL1M )
+			VAR _d = DIVIDE( IF(_Val_B1  <0,0,IF(_Val_B1  >_Limit_B1,  _Limit_B1,  _Val_B1  )), _Limit_B1   )
+			VAR _T = 22
+			RETURN
+			    ( _d * _c * DIVIDE( 1, _T ) ) * 100
+		formatString: 0.0
+		displayFolder: Tela 3.3
+		lineageTag: a2c4e338-8c5e-4c8a-8c0f-6b3066c56a5d
+
+	measure 'Splash Último Dia com Dado' =
+			
+			MAX ( Fato_Solda[Data] )
+		formatString: General Date
+		lineageTag: bcae4acc-4d41-4d93-8d3f-a554d43ae938
+
+	measure 'Splash Tem Medição' =
+			
+			COALESCE(
+			    CALCULATE(
+			        COUNTROWS( Fato_Solda ),
+			        REMOVEFILTERS( Fato_Solda[Status_Measuring] ),
+			        Fato_Solda[Status_Measuring] = "Ligado"
+			    ),
+			    0
+			) > 0
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: aa203045-7b8e-4029-825c-2a61ae6c6f6f
+
+	measure 'Baseline splash' = 0
+		formatString: 0
+		lineageTag: 67001d22-bd9b-41ea-adcd-ef1ed30ed405
+
+	measure 'β1 splash' = ```
+			
+			        VAR _Pinca = SELECTEDVALUE( Fato_Solda[electrodeNo] )
+			        VAR _Fim   = MAX( Fato_Solda[Data] )
+			        VAR _Ini   = _Fim - 364
+			        VAR _S = FILTER(
+			                     CALCULATETABLE( Fato_Splash_Diario,
+			                         REMOVEFILTERS( Fato_Splash_Diario[electrodeNo] ),
+			                         Fato_Splash_Diario[electrodeNo] = _Pinca ),
+			                     Fato_Splash_Diario[Data] >= _Ini
+			                     && Fato_Splash_Diario[Data] <= _Fim
+			                     && Fato_Splash_Diario[medindo] > 0 )
+			        VAR _MinX = MINX( _S, INT( Fato_Splash_Diario[Data] ) )
+			        VAR _MaxX = MAXX( _S, INT( Fato_Splash_Diario[Data] ) )
+			        VAR _MinY = MINX( _S, Fato_Splash_Diario[splash_dia] )
+			        VAR _MaxY = MAXX( _S, Fato_Splash_Diario[splash_dia] )
+			        VAR _N = ADDCOLUMNS( _S,
+			                "Xn", DIVIDE( INT( Fato_Splash_Diario[Data] ) - _MinX, _MaxX - _MinX ),
+			                "Yn", DIVIDE( Fato_Splash_Diario[splash_dia] - _MinY, _MaxY - _MinY ) )
+			        VAR _mx = AVERAGEX( _N, [Xn] )
+			        VAR _my = AVERAGEX( _N, [Yn] )
+			        VAR _D  = ADDCOLUMNS( _N, "dx", [Xn] - _mx, "dy", [Yn] - _my )
+			        VAR _cov = SUMX( _D, [dx] * [dy] )
+			        VAR _var = SUMX( _D, [dx] * [dx] )
+			        RETURN IF( _var = 0, BLANK(), DEGREES( ATAN( DIVIDE( _cov, _var ) ) ) )
+			```
+		lineageTag: a77acb3b-7eeb-4606-a41d-952ebf54e74f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'β1 splash_norm' = ```
+			
+			        VAR _Pinca = SELECTEDVALUE( Fato_Solda[electrodeNo] )
+			        VAR _Fim   = MAX( Fato_Solda[Data] )
+			        VAR _Ini   = _Fim - 364
+			        VAR _S = FILTER(
+			                     CALCULATETABLE( Fato_Splash_Diario,
+			                         REMOVEFILTERS( Fato_Splash_Diario[electrodeNo] ),
+			                         Fato_Splash_Diario[electrodeNo] = _Pinca ),
+			                     Fato_Splash_Diario[Data] >= _Ini
+			                     && Fato_Splash_Diario[Data] <= _Fim
+			                     && Fato_Splash_Diario[medindo] > 0 )
+			        VAR _MinX = MINX( _S, INT( Fato_Splash_Diario[Data] ) )
+			        VAR _MaxX = MAXX( _S, INT( Fato_Splash_Diario[Data] ) )
+			        VAR _MinY = MINX( _S, Fato_Splash_Diario[splash_dia] )
+			        VAR _MaxY = MAXX( _S, Fato_Splash_Diario[splash_dia] )
+			        VAR _N = ADDCOLUMNS( _S,
+			                "W",  EXP( -0.17 * ( _Fim - Fato_Splash_Diario[Data] ) ),
+			                "Xn", DIVIDE( INT( Fato_Splash_Diario[Data] ) - _MinX, _MaxX - _MinX ),
+			                "Yn", DIVIDE( Fato_Splash_Diario[splash_dia] - _MinY, _MaxY - _MinY ) )
+			        VAR _sw = SUMX( _N, [W] )
+			        VAR _mx = DIVIDE( SUMX( _N, [Xn] * [W] ), _sw )
+			        VAR _my = DIVIDE( SUMX( _N, [Yn] * [W] ), _sw )
+			        VAR _D  = ADDCOLUMNS( _N, "dx", [Xn] - _mx, "dy", [Yn] - _my )
+			        VAR _cov = SUMX( _D, [W] * [dx] * [dy] )
+			        VAR _var = SUMX( _D, [W] * [dx] * [dx] )
+			        RETURN IF( _var = 0, BLANK(), DEGREES( ATAN( DIVIDE( _cov, _var ) ) ) )
+			```
+		lineageTag: fc9e9c92-fd20-4647-be99-beafb1889582
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Erros_Ultimos_5_Dias =
+			
+			VAR MaxData =
+			    MAX(Fato_Erro[Data])
+			
+			VAR DataInicial =
+			    MaxData - 4
+			
+			RETURN
+			    CALCULATE(
+			        COUNT(Fato_Erro[errorCode1_txt]),
+			        KEEPFILTERS( Fato_Erro[Data] >= DataInicial ),
+			        KEEPFILTERS( Fato_Erro[Data] <= MaxData )
+			    )
+		formatString: 0
+		lineageTag: 086923a6-11ea-4f6e-aec3-2ec4078b5c51
+
+	/// Quantidade de PINCAS (electrodeNo) com PSQ ligado. Classifica pelo status do ULTIMO DIA com dado dentro dos filtros vigentes, conforme regra definida em 14/10/2026. Empate no mesmo dia (linhas ligada e desligada na mesma data) resolve para Desligado, por MINX sobre texto -- critario conservador de cobertura; trocar por MAXX inverte. NAO usa ALL/ALLSELECTED/REMOVEFILTERS: o recorte do usuario vale integralmente, e o ultimo dia e o ultimo dia DO RECORTE.
+	measure 'Pinças PSQ Ligado' =
+			COUNTROWS (
+			    FILTER (
+			        ADDCOLUMNS (
+			            VALUES ( 'Fato_Solda'[electrodeNo] ),
+			            "@StatusUltDia",
+			                MINX (
+			                    TOPN (
+			                        1,
+			                        SUMMARIZE (
+			                                'Fato_Solda',
+			                                'Fato_Solda'[Data],
+			                                'Fato_Solda'[Status_Measuring]
+			                            ),
+			                        'Fato_Solda'[Data], DESC
+			                    ),
+			                    'Fato_Solda'[Status_Measuring]
+			                )
+			        ),
+			        [@StatusUltDia] = "Ligado"
+			    )
+			)
+		formatString: 0
+		displayFolder: PSQ
+		lineageTag: 2eafca39-80d4-4762-80c2-2861d789b46b
+
+	/// Quantidade de PINCAS (electrodeNo) com PSQ desligado. Classifica pelo status do ULTIMO DIA com dado dentro dos filtros vigentes, conforme regra definida em 14/10/2026. Empate no mesmo dia (linhas ligada e desligada na mesma data) resolve para Desligado, por MINX sobre texto -- critario conservador de cobertura; trocar por MAXX inverte. NAO usa ALL/ALLSELECTED/REMOVEFILTERS: o recorte do usuario vale integralmente, e o ultimo dia e o ultimo dia DO RECORTE.
+	measure 'Pinças PSQ Desligado' =
+			COUNTROWS (
+			    FILTER (
+			        ADDCOLUMNS (
+			            VALUES ( 'Fato_Solda'[electrodeNo] ),
+			            "@StatusUltDia",
+			                MINX (
+			                    TOPN (
+			                        1,
+			                        SUMMARIZE (
+			                                'Fato_Solda',
+			                                'Fato_Solda'[Data],
+			                                'Fato_Solda'[Status_Measuring]
+			                            ),
+			                        'Fato_Solda'[Data], DESC
+			                    ),
+			                    'Fato_Solda'[Status_Measuring]
+			                )
+			        ),
+			        [@StatusUltDia] = "Desligado"
+			    )
+			)
+		formatString: 0
+		displayFolder: PSQ
+		lineageTag: a4f0d488-0f50-4ed7-af1f-abbd7662e99d
+
+	/// Quantidade de PONTOS distintos, chave electrodeNo + spotName, com PSQ ligado. A chave inclui a pinca porque o M separou o Modelo_cod do spotName, entao o nome do ponto sozinho se repete entre modelos. Classifica pelo status do ULTIMO DIA com dado dentro dos filtros vigentes, conforme regra definida em 14/10/2026. Empate no mesmo dia (linhas ligada e desligada na mesma data) resolve para Desligado, por MINX sobre texto -- critario conservador de cobertura; trocar por MAXX inverte. NAO usa ALL/ALLSELECTED/REMOVEFILTERS: o recorte do usuario vale integralmente, e o ultimo dia e o ultimo dia DO RECORTE.
+	measure 'Pontos PSQ Ligado' =
+			COUNTROWS (
+			    FILTER (
+			        ADDCOLUMNS (
+			            SUMMARIZE (
+			                'Fato_Solda',
+			                'Fato_Solda'[electrodeNo],
+			                'Fato_Solda'[spotName]
+			            ),
+			            "@StatusUltDia",
+			                MINX (
+			                    TOPN (
+			                        1,
+			                        SUMMARIZE (
+			                                'Fato_Solda',
+			                                'Fato_Solda'[Data],
+			                                'Fato_Solda'[Status_Measuring]
+			                            ),
+			                        'Fato_Solda'[Data], DESC
+			                    ),
+			                    'Fato_Solda'[Status_Measuring]
+			                )
+			        ),
+			        [@StatusUltDia] = "Ligado"
+			    )
+			)
+		formatString: 0
+		displayFolder: PSQ
+		lineageTag: d2ae35b5-3d90-4670-af31-475da160f28e
+
+	/// Quantidade de PONTOS distintos, chave electrodeNo + spotName, com PSQ desligado. Classifica pelo status do ULTIMO DIA com dado dentro dos filtros vigentes, conforme regra definida em 14/10/2026. Empate no mesmo dia (linhas ligada e desligada na mesma data) resolve para Desligado, por MINX sobre texto -- critario conservador de cobertura; trocar por MAXX inverte. NAO usa ALL/ALLSELECTED/REMOVEFILTERS: o recorte do usuario vale integralmente, e o ultimo dia e o ultimo dia DO RECORTE.
+	measure 'Pontos PSQ Desligado' =
+			COUNTROWS (
+			    FILTER (
+			        ADDCOLUMNS (
+			            SUMMARIZE (
+			                'Fato_Solda',
+			                'Fato_Solda'[electrodeNo],
+			                'Fato_Solda'[spotName]
+			            ),
+			            "@StatusUltDia",
+			                MINX (
+			                    TOPN (
+			                        1,
+			                        SUMMARIZE (
+			                                'Fato_Solda',
+			                                'Fato_Solda'[Data],
+			                                'Fato_Solda'[Status_Measuring]
+			                            ),
+			                        'Fato_Solda'[Data], DESC
+			                    ),
+			                    'Fato_Solda'[Status_Measuring]
+			                )
+			        ),
+			        [@StatusUltDia] = "Desligado"
+			    )
+			)
+		formatString: 0
+		displayFolder: PSQ
+		lineageTag: 956b023d-346a-4958-bb9d-81e223e6c0c7
+
+	measure 'Pts Aceleração (Foco)' =
+			-- Trava a conta no [Robô em Foco], como fazia [Pts Componente] antes de
+			-- ScoreSplash_Componentes ser removida. Componente 1 de 6 da tela 3.3.
+			VAR _robo = [Robô em Foco]
+			RETURN
+			    CALCULATE (
+			        [Pts Aceleração],
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+		formatString: 0.0
+		lineageTag: 2aa64ee4-0bd0-4981-ad67-c45931bf5b0a
+
+	measure 'Pts Tendência (Foco)' =
+			-- Trava a conta no [Robô em Foco], como fazia [Pts Componente] antes de
+			-- ScoreSplash_Componentes ser removida. Componente 2 de 6 da tela 3.3.
+			VAR _robo = [Robô em Foco]
+			RETURN
+			    CALCULATE (
+			        [Pts Tendência],
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+		formatString: 0.0
+		lineageTag: 5380adb2-b5f9-4b8e-864a-f699b9c48ad7
+
+	measure 'Pts Nível Dia (Foco)' =
+			-- Trava a conta no [Robô em Foco], como fazia [Pts Componente] antes de
+			-- ScoreSplash_Componentes ser removida. Componente 3 de 6 da tela 3.3.
+			VAR _robo = [Robô em Foco]
+			RETURN
+			    CALCULATE (
+			        [Pts Nível Dia],
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+		formatString: 0.0
+		lineageTag: 8eb9b960-d3c6-4b93-8b51-77e231efb528
+
+	measure 'Pts Nível Mês (Foco)' =
+			-- Trava a conta no [Robô em Foco], como fazia [Pts Componente] antes de
+			-- ScoreSplash_Componentes ser removida. Componente 4 de 6 da tela 3.3.
+			VAR _robo = [Robô em Foco]
+			RETURN
+			    CALCULATE (
+			        [Pts Nível Mês],
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+		formatString: 0.0
+		lineageTag: 3f513dda-40d9-47d8-b600-23cf5dca77ab
+
+	measure 'Pts Risco Explosão (Foco)' =
+			-- Trava a conta no [Robô em Foco], como fazia [Pts Componente] antes de
+			-- ScoreSplash_Componentes ser removida. Componente 5 de 6 da tela 3.3.
+			VAR _robo = [Robô em Foco]
+			RETURN
+			    CALCULATE (
+			        [Pts Risco Explosão],
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+		formatString: 0.0
+		lineageTag: 0a33a9c0-5675-40f0-9abe-7afebe07dab6
+
+	measure 'Pts Risco Estrutural (Foco)' =
+			-- Trava a conta no [Robô em Foco], como fazia [Pts Componente] antes de
+			-- ScoreSplash_Componentes ser removida. Componente 6 de 6 da tela 3.3.
+			VAR _robo = [Robô em Foco]
+			RETURN
+			    CALCULATE (
+			        [Pts Risco Estrutural],
+			        REMOVEFILTERS ( Fato_Solda[timerName] ),
+			        Fato_Solda[timerName] = _robo
+			    )
+		formatString: 0.0
+		lineageTag: 0945458e-40f3-4a75-9fe8-fa9153466547
+
+	measure 'Pincas Criticas' =
+			-- Capa: pincas com Score acima do corte critico (32).
+			COUNTROWS ( FILTER ( VALUES ( Dim_Pinca[pinca] ), [Score] > 32 ) )
+		formatString: 0
+		displayFolder: Capa
+		lineageTag: 0a669036-842e-4b39-bc89-35a7e3c79d74
+
+	measure 'Alarmes 24h' =
+			-- Capa: erros do ultimo dia com registro.
+			VAR _ult = MAX ( Fato_Erro[Data] )
+			RETURN
+			    CALCULATE ( SUM ( Fato_Erro[total_erros] ), KEEPFILTERS ( Fato_Erro[Data] = _ult ) )
+		formatString: #,0
+		displayFolder: Capa
+		lineageTag: 6e59fa92-35fd-4533-b373-706152040653
+
+	measure 'Robos com Alarme' =
+			-- Capa: quantos robos distintos geraram alarme no ultimo dia.
+			VAR _ult = MAX ( Fato_Erro[Data] )
+			RETURN
+			    CALCULATE ( DISTINCTCOUNT ( Fato_Erro[timerName] ), KEEPFILTERS ( Fato_Erro[Data] = _ult ) )
+		formatString: 0
+		displayFolder: Capa
+		lineageTag: a02adee4-8e0d-4826-b64a-3093a4d4bf0b
+
+	measure 'Pincas sem Dado' =
+			-- Capa: pincas sem nenhuma medicao ligada.
+			COUNTROWS ( FILTER ( VALUES ( Dim_Pinca[pinca] ), NOT [Splash Tem Medição] ) )
+		formatString: 0
+		displayFolder: Capa
+		lineageTag: 09ccdf13-40fe-4f12-8108-acc6752f02a0
+
+	measure 'Cobertura de Medicao' =
+			-- Capa: fracao das pincas com medicao ligada.
+			VAR _tot = COUNTROWS ( VALUES ( Dim_Pinca[pinca] ) )
+			RETURN DIVIDE ( _tot - [Pincas sem Dado], _tot )
+		formatString: 0.0%
+		displayFolder: Capa
+		lineageTag: 9e76f7bc-fe44-4f6c-a576-4e8f69a7db4f
+
+	measure 'Desc Alarmes' =
+			-- Capa: descricao do indicador, texto + numero.
+			FORMAT ( [Robos com Alarme], "#,0" ) & " robôs"
+		displayFolder: Capa
+		lineageTag: eb20d3d5-7de4-4457-8757-b2836cba007f
+
+	measure 'Desc Cobertura' =
+			-- Capa: descricao do indicador, texto + numero.
+			FORMAT ( [Pincas sem Dado], "#,0" ) & " pinças sem dado"
+		displayFolder: Capa
+		lineageTag: 4a35f9cc-2609-4986-a540-5ff322df6489
+
+	column timerName
+		dataType: string
+		lineageTag: 86a09d85-0849-44b4-bc07-5200c4b2d9ef
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column progNo
+		dataType: int64
+		formatString: 0
+		lineageTag: ba1b736c-c5be-44af-b59f-a41da0fd5a89
+		summarizeBy: sum
+		sourceColumn: progNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column spotName
+		dataType: string
+		lineageTag: a32a1108-b16f-428f-a89c-afa3b4b0d7a4
+		summarizeBy: none
+		sourceColumn: spotName
+
+		annotation SummarizationSetBy = Automatic
+
+	column wearPerCent
+		dataType: double
+		lineageTag: 16a1fe8a-9702-4ea6-b863-0b03be11b5d1
+		summarizeBy: sum
+		sourceColumn: wearPerCent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pha2
+		dataType: double
+		lineageTag: 70d1f709-9f8e-458f-a4f6-7f35604ab849
+		summarizeBy: sum
+		sourceColumn: pha2
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column voltageActualValue
+		dataType: double
+		lineageTag: a7b20fca-1e64-4b0e-8e95-3cc8c9bb4829
+		summarizeBy: sum
+		sourceColumn: voltageActualValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column resistanceActualValue
+		dataType: double
+		lineageTag: eb87db94-c06a-445f-b438-39e6995aa96b
+		summarizeBy: sum
+		sourceColumn: resistanceActualValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column uipActualValue
+		dataType: double
+		formatString: 0
+		lineageTag: e3dc8d99-7cd7-4061-b96a-f8da337970a4
+		summarizeBy: sum
+		sourceColumn: uipActualValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column Modelo
+		dataType: string
+		lineageTag: 096f6a2a-bced-4de7-997d-b1561cedbb79
+		summarizeBy: none
+		sourceColumn: Modelo
+
+		annotation SummarizationSetBy = Automatic
+
+	column SP_TRATADO = ```
+			
+			IF(
+			    RIGHT([spotName], 1) = "0",
+			    SWITCH(
+			        TRUE(),
+			        RIGHT([Line], 3) = "X6H",
+			            CONCATENATE([spotName], "3"),
+			        RIGHT([Line], 3) = "X1H",
+			            CONCATENATE([spotName], "2"),
+			        //RIGHT([Line], 3) = "376",
+			        //    CONCATENATE([Spot_Name], "7"),
+			        [spotName]
+			    ),
+			    IF(
+			        RIGHT([spotName], 1) <> "+",
+			        IF(
+			            LEFT(RIGHT([spotName], 2), 1) = "_",
+			            LEFT([spotName], 11) & "0" & RIGHT([spotName], 1),
+			            [spotName]
+			        ),
+			        SWITCH(
+			            TRUE(),
+			            LEFT(RIGHT([spotName], 5), 1) = "_",
+			                   LEFT([spotName], 11) & "0" & RIGHT([spotName], 4),
+			            RIGHT([Line], 3) = "X6H",
+			                LEFT([spotName], 12) & "3 Q+",
+			            RIGHT([Line], 3) = "X1H",
+			                LEFT([spotName], 12) & "2 Q+",
+			            //RIGHT([Line], 3) = "376",
+			            //    LEFT([spotName], 11) & "07 Q+",
+			            [spotName]
+			        )
+			    )
+			)
+			
+			```
+		lineageTag: 702e934a-d080-4f78-84e7-7f0d4932cdf7
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Line
+		dataType: string
+		lineageTag: aa0c05ef-12ca-42c8-b9b2-9dcbddb14eab
+		summarizeBy: none
+		sourceColumn: Line
+
+		annotation SummarizationSetBy = Automatic
+
+	column Vão_de_Porta = ```
+			
+			VAR X6H = {"WP53181_00_03","WP53183_00_03","WP53285_00_03","WP53279_00_03","WP53135_00_03","WP53289_00_03","WP53121_00_03 Q+","WP53123_00_03 Q+","WP53125_00_03 Q+","WP53271_00_03","WP53273_00_03","WP53275_00_03","WP53107_00_03","WP53277_00_03 Q+","WP53293_00_03","WP53129_00_03","WP53127_00_03","WP53269_00_03","WP53105_00_03","WP52990_00_03","WP53132_00_03","WP53262_00_03","WP53284_00_03","WP53264_00_03","WP53266_00_03","WP53108_00_03 Q+","WP53110_00_03 Q+","WP53112_00_03 Q+","WP53260_00_03 Q+","WP53102_00_03","WP53258_00_03","WP53256_00_03","WP53254_00_03","WP53252_00_03","WP53100_00_03","WP53116_00_03","WP53118_00_03","WP53290_00_03","WP52998_00_03","WP59094_00_03","WP59092_00_03","WP52804_00_03","WP52996_00_03","WP52994_00_03","WP00425_00_03","WP52992_00_03","WP00424_00_03","WP52936_00_03","WP52934_00_03","WP52932_00_03","WP52930_00_03","WP52922_00_03","WP52924_00_03","WP52926_00_03","WP52928_00_03","WP52906_00_03 Q+","WP52908_00_03 Q+","WP52910_00_03 Q+","WP53814_00_03 Q+","WP52912_00_03 Q+","WP52914_00_03 Q+","WP52878_00_03 Q+","WP52880_00_03 Q+","WP52800_00_03 Q+","WP52882_00_03 Q+","WP52884_00_03 Q+","WP52886_00_03 Q+","WP52888_00_03 Q+","WP52890_00_03 Q+","WP52892_00_03 Q+","WP52894_00_03 Q+","WP52896_00_03 Q+","WP52098_00_03 Q+","WP52900_00_03 Q+","WP52902_00_03 Q+","WP52904_00_03 Q+","WP59050_00_03 Q+","WP59048_00_03 Q+","WP59046_00_03 Q+","WP50044_00_03 Q+","WP59042_00_03 Q+","WP59040_00_03 Q+","WP59038_00_03 Q+","WP59036_00_03 Q+","WP59034_00_03 Q+","WP59032_00_03 Q+","WP59030_00_03 Q+","WP59028_00_03 Q+","WP59026_00_03 Q+","WP59024_00_03 Q+","WP59022_00_03 Q+","WP59020_00_03 Q+","WP59018_00_03 Q+","WP59018_00_03 Q+","WP59014_00_03 Q+","WP59012_00_03 Q+","WP59010_00_03 Q+","WP50061_00_03","WP50050_00_03","WP50077_00_03","WP50079_00_03","WP50081_00_03","WP50083_00_03 Q+","WP50005_00_03 Q+","WP50087_00_03 Q+","WP50009_00_03 Q+","WP59091_00_03 Q+","WP59225_00_03 Q+","WP50093_00_03 Q+","WP59095_00_03 Q+","WP50055_00_03","WP50053_00_03","WP50039_00_03","WP59051_00_03","WP50049_00_03","WP59047_00_03","WP50045_00_03","WP50247_00_03","WP50041_00_03","WP50057_00_03","WP59037_00_03","WP59035_00_03","WP50033_00_03","WP59245_00_03 Q+","WP50097_00_03 Q+","WP59099_00_03 Q+","WP59101_00_03 Q+","WP59027_00_03 Q+","WP50029_00_03 Q+","WP59103_00_03 Q+","WP59105_00_03 Q+","WP59107_00_03 Q+","WP59109_00_03 Q+","WP59111_00_03 Q+","WP59113_00_03 Q+","WP59305_00_03","WP59015_00_03","WP59021_00_03","WP52155_00_03 Q+","WP59153_00_03 Q+","WP59151_00_03 Q+","WP59149_00_03 Q+","WP59147_00_03 Q+","WP59145_00_03 Q+","WP52143_00_03 Q+","WP59141_00_03 Q+","WP59139_00_03 Q+","WP59137_00_03 Q+","WP59135_00_03 Q+","WP52133_00_03 Q+","WP59131_00_03 Q+","WP59129_00_03 Q+","WP59127_00_03 Q+","WP59125_00_03 Q+","WP59123_00_03 Q+","WP59121_00_03 Q+","WP59119_00_03 Q+","WP52117_00_03 Q+","WP50115_00_03 Q+","","WP59085_00_03","WP59067_00_03","WP59073_00_03","WP59071_00_03","WP59075_00_03","WP59189_00_03","WP59061_00_03","WP59059_00_03","WP59083_00_03","WP59179_00_03","WP59181_00_03","WP59073_00_03"}
+			
+			VAR VP218CC = {"WP52961_00_04","WP52865_00_04 Q+","WP52869_00_04","WP52873_00_04 Q+","WP52855_00_04","WP62211_00_04 Q+","WP62225_00_04 Q+","WP62221_00_04 Q+","WP62219_00_04 Q+","WP62213_00_04 Q+","WP62209_00_04 Q+","WP62061_00_04 Q+","WP62057_00_04 Q+","WP62205_00_04 Q+","WP62053_00_04 Q+","WP62051_00_04 Q+","WP62049_00_04 Q+","WP62203_00_04 Q+","WP62047_00_04 Q+","WP62197_00_04 Q+","WP62193_00_04 Q+","WP62191_00_04 Q+","WP62189_00_04 Q+","WP62187_00_04 Q+","WP62185_00_04 Q+","WP62179_00_04 Q+","WP62177_00_04 Q+","WP62175_00_04 Q+","WP62171_00_04 Q+","WP62167_00_04 Q+","WP62163_00_04 Q+","WP62157_00_04 Q+","WP62151_00_04 Q+","WP62145_00_04 Q+","WP62063_00_04 Q+","WP62067_00_04 Q+","WP62181_00_04 Q+","WP62165_00_04 Q+","WP62155_00_04 Q+","WP62147_00_04 Q+","WP62139_00_04 Q+","WP62133_00_04 Q+","WP62131_00_04 Q+","WP62125_00_04 Q+","WP62123_00_04 Q+","WP62119_00_04 Q+","WP62115_00_04 Q+","WP62111_00_04 Q+","WP62107_00_04 Q+","WP62101_00_04 Q+","WP62095_00_04 Q+","WP62089_00_04 Q+","WP62085_00_04 Q+","WP62079_00_04 Q+","WP62075_00_04 Q+","WP62071_00_04 Q+","WP52853_00_04 Q+","WP52851_00_04","WP52849_00_04","WP52847_00_04 Q+","WP52845_00_04 Q+","WP52843_00_04","WP52841_00_04 Q+","WP52839_00_04 Q+","WP52837_00_04","WP52909_00_04 Q+","WP52907_00_04","WP52903_00_04 Q+","WP52899_00_04 Q+","WP52895_00_04 Q+","WP52697_00_04 Q+","WP52881_00_04","WP52973_00_04","WP52963_00_04","WP52961_00_04","WP52955_00_04","WP52947_00_04 Q+","WP52943_00_04","WP52941_00_04 Q+","WP52077_00_04 Q+","WP52835_00_04 Q+","WP59037_00_04 Q+","WP59023_00_04 Q+","WP59041_00_04 Q+","WP59049_00_04 Q+","WP59053_00_04 Q+","WP59059_00_04 Q+","WP59063_00_04 Q+","WP59071_00_04 Q+","WP59081_00_04 Q+","WP59089_00_04 Q+","WP59095_00_04 Q+","WP59099_00_04 Q+","WP59107_00_04 Q+","WP59111_00_04 Q+","WP59117_00_04 Q+","WP59123_00_04 Q+","WP59127_00_04 Q+","WP59133_00_04 Q+","WP59131_00_04 Q+","WP59129_00_04 Q+","WP59125_00_04 Q+","WP59121_00_04 Q+","WP59119_00_04 Q+","WP59109_00_04 Q+","WP59105_00_04 Q+","WP59101_00_04 Q+","WP59097_00_04 Q+","WP59087_00_04 Q+","WP59085_00_04 Q+","WP59077_00_04 Q+","WP59075_00_04 Q+","WP59065_00_04 Q+","WP59005_00_04 Q+","WP59013_00_04 Q+","WP59019_00_04 Q+","WP59029_00_04 Q+","WP62201_00_04 Q+","WP62285_00_04 Q+","WP62283_00_04 Q+","WP62279_00_04 Q+","WP62275_00_04 Q+","WP62273_00_04 Q+","WP62271_00_04 Q+","WP62267_00_04 Q+","WP62265_00_04 Q+","WP62263_00_04 Q+","WP62259_00_04 Q+","WP62257_00_04 Q+","WP62255_00_04 Q+","WP62253_00_04 Q+","WP62249_00_04 Q+","WP62247_00_04 Q+","WP62245_00_04 Q+","WP62239_00_04 Q+","WP62237_00_04 Q+","WP62235_00_04 Q+","WP62233_00_04 Q+","WP62229_00_04 Q+","WP62223_00_04 Q+","WP62231_00_04 Q+","WP62243_00_04 Q+","WP50021_00_04","WP50023_00_04","WP50025_00_04","WP50027_00_04","WP50029_00_04","WP50031_00_04","WP50033_00_04","WP50035_00_04","WP50037_00_04","WP50039_00_04","WP50051_00_04","WP50049_00_04","WP50047_00_04","WP50045_00_04","WP50043_00_04","WP50041_00_04","WP50034_00_04","WP50032_00_04","WP50030_00_04","WP50028_00_04","WP50026_00_04","WP50024_00_04","WP50022_00_04","WP50020_00_04","WP50018_00_04","WP50036_00_04","WP50038_00_04","WP50040_00_04","WP50042_00_04","WP50044_00_04","WP50046_00_04","WP50048_00_04","WP50050_00_04","WP52828_00_04 Q+","WP52830_00_04 Q+","WP52854_00_04","WP52852_00_04 Q+","WP52850_00_04 Q+","WP52848_00_04","WP52846_00_04 Q+","WP52844_00_04 Q+","WP52842_00_04","WP52840_00_04 Q+","WP52838_00_04 Q+","WP52836_00_04","WP52834_00_04 Q+","WP53106_00_04 Q+","WP52856_00_04 Q+","WP52868_00_04","WP52872_00_04 Q+","WP52876_00_04 Q+","WP52880_00_04","WP52972_00_04","WP52962_00_04","WP52960_00_04","WP52954_00_04","WP52946_00_04 Q+","WP52942_00_04","WP52940_00_04 Q+","WP59040_00_04 Q+","WP59048_00_04 Q+","WP59052_00_04 Q+","WP59036_00_04 Q+","WP59030_00_04 Q+","WP59022_00_04 Q+","WP59058_00_04 Q+","WP59062_00_04 Q+","WP59070_00_04 Q+","WP59080_00_04 Q+","WP59088_00_04 Q+","WP59000_00_04 Q+","WP59094_00_04 Q+","WP59098_00_04 Q+","WP59106_00_04 Q+","WP59110_00_04 Q+","WP59116_00_04 Q+","WP59122_00_04 Q+","WP59126_00_04 Q+","WP59132_00_04 Q+","WP59130_00_04 Q+","WP59128_00_04 Q+","WP59124_00_04 Q+","WP59118_00_04 Q+","WP59108_00_04 Q+","WP59104_00_04 Q+","WP59100_00_04 Q+","WP59096_00_04 Q+","WP59090_00_04 Q+","WP59086_00_04 Q+","WP59084_00_04 Q+","WP59076_00_04 Q+","WP59074_00_04 Q+","WP59064_00_04 Q+","WP62164_00_04 Q+","WP62154_00_04 Q+","WP62146_00_04 Q+","WP62138_00_04 Q+","WP62132_00_04 Q+","WP62130_00_04 Q+","WP62124_00_04 Q+","WP62122_00_04 Q+","WP62118_00_04 Q+","WP62114_00_04 Q+","WP62110_00_04 Q+","WP62106_00_04 Q+","WP62100_00_04 Q+","WP62094_00_04 Q+","WP62088_00_04 Q+","WP62084_00_04 Q+","WP62078_00_04 Q+","WP62074_00_04 Q+","WP62070_00_04 Q+","WP52826_00_04 Q+","WP52860_00_04 Q+","WP52864_00_04","WP52886_00_04 Q+","WP52898_00_04 Q+","WP52902_00_04 Q+","WP52906_00_04","WP52908_00_04 Q+","WP59004_00_04 Q+","WP59012_00_04 Q+","WP59018_00_04 Q+","WP59020_00_04 Q+","WP59028_00_04 Q+","WP62282_00_04 Q+","WP62274_00_04 Q+","WP62272_00_04 Q+","WP62278_00_04 Q+","WP62270_00_04 Q+","WP62264_00_04 Q+","WP62266_00_04 Q+","WP62262_00_04 Q+","WP62236_00_04 Q+","WP62234_00_04 Q+","WP62232_00_04 Q+","WP62228_00_04 Q+","WP62222_00_04 Q+","WP62230_00_04 Q+","WP62242_00_04 Q+","WP62210_00_04 Q+","WP62224_00_04 Q+","WP62220_00_04 Q+","WP62218_00_04 Q+","WP62212_00_04 Q+","WP62208_00_04 Q+","WP62204_00_04 Q+","WP62202_00_04 Q+","WP62196_00_04 Q+","WP62192_00_04 Q+","WP62190_00_04 Q+","WP62188_00_04 Q+","WP62186_00_04 Q+","WP62182_00_04 Q+","WP62178_00_04 Q+","WP62174_00_04 Q+","WP62166_00_04 Q+","WP62162_00_04 Q+","WP62156_00_04 Q+","WP62150_00_04 Q+","WP62062_00_04 Q+","WP62066_00_04 Q+","WP62176_00_04 Q+","WP62060_00_04 Q+","WP62056_00_04 Q+","WP62052_00_04 Q+","WP62050_00_04 Q+","WP62048_00_04 Q+","WP62046_00_04 Q+","WP62200_00_04 Q+","WP62284_00_04 Q+"} 
+			
+			VAr Pontos_Antigos = {"WP52852_00_2,WP52854_00_2,WP52811_00_4,WP52816_00_4,WP52837_00_4,WP52839_00_4 Q+,WP52847_00_5 Q+,WP52854_00_5 Q+,WP52856_00_4 Q+,WP52873_00_4 Q+,WP52885_00_5,WP52907_00_2,WP52924_00_3,WP52933_00_2,WP53005_00_2,WP53065_00_4,WP52838_00_4 Q+,WP52840_00_2,WP52841_00_5 Q+,WP52846_00_5 Q+,WP52847_00_4 Q+,WP52850_00_5 Q+,WP52851_00_5 Q+,WP52861_00_4,WP52868_00_4,WP52870_00_5 Q+,WP52872_00_4 Q+,WP52881_00_4,WP52886_00_4 Q+,WP52896_00_5 Q+,WP52897_00_5 Q+,WP52899_00_4 Q+,WP52905_00_5 Q+,WP52908_00_4 Q+,WP52909_00_4 Q+,WP52926_00_5,WP52929_00_3,WP52930_00_3,WP52932_00_2,WP52934_00_2,WP52935_00_3,WP52941_00_4 Q+,WP52955_00_4,WP52958_00_2,WP52968_00_2 Q+,WP53011_00_5 Q+,WP53015_00_2,WP53016_00_4,WP53027_00_4,WP53043_00_3,WP53065_00_2,WP53067_00_4,WP53109_00_2,WP59519_00_2,WP52858_00_2,WP52816_00_5 Q+,WP52836_00_5,WP52837_00_5,WP52842_00_5,WP52848_00_5,WP52856_00_3,WP52869_00_4,WP52878_00_5 Q+,WP52885_00_3,WP52899_00_2,WP52905_00_2 Q+,WP52925_00_3,WP52927_00_5,WP52928_00_3,WP52929_00_5,WP52930_00_2,WP52933_00_3,WP52934_00_5 *,WP52960_00_2,WP52966_00_2 Q+,WP52968_00_5,WP52972_00_5,WP52973_00_5,WP53011_00_2,WP53021_00_4,WP53177_00_2 Q+,WP53179_00_2 Q+,WP52810_00_2,WP52810_00_4,WP52840_00_4 Q+,WP52849_00_5,WP52850_00_4 Q+,WP52852_00_4 Q+,WP52854_00_3,WP52860_00_2 Q+,WP52877_00_4 Q+,WP52887_00_4 Q+,WP52893_00_2,WP52893_00_5 Q+,WP52927_00_2,WP52931_00_3,WP52940_00_4 Q+,WP52941_00_2 Q+,WP52946_00_4 Q+,WP52947_00_4 Q+,WP52954_00_5,WP52961_00_4 Q+,WP53015_00_4,WP53016_00_2 Q+,WP53043_00_2,WP53139_00_2,WP59431_00_2,WP59518_00_2,WP59526_00_2,WP52860_00_2,WP52935_00_5,WP59431_00_02,WP59519_00_02,WP52808_00_4 Q+,WP52838_00_5 Q+,WP52839_00_5 Q+,WP52840_00_5 Q+,WP52842_00_4,WP52843_00_4,WP52843_00_5,WP52846_00_4 Q+,WP52850_00_2 Q+,WP52854_00_2 Q+,WP52857_00_4 Q+,WP52858_00_2 Q+,WP52874_00_5"}
+			
+			VAR VP218CS = {"WP52853_00_05 Q+","WP52851_00_05 Q+","WP52831_00_05 Q+","WP52029_00_05 Q+","WP52827_00_05 Q+","WP52835_00_05 Q+","WP52855_00_05 Q+","WP52859_00_05 Q+","WP52863_00_05","WP52937_00_05","WP52935_00_05","WP52931_00_05","WP52929_00_05","WP52927_00_05","WP52923_00_05","WP52849_00_05","WP52847_00_05","WP52845_00_05 Q+","WP52843_00_05","WP52841_00_05 Q+","WP52839_00_05 Q+","WP52837_00_05","WP52905_00_05 Q+","WP52901_00_05","WP52897_00_05 Q+","WP52893_00_05 Q+","WP52885_00_05","WP52879_00_05 Q+","WP52875_00_05","WP52871_00_05","WP52867_00_05 Q+","WP62109_00_05","WP62103_00_05","WP62099_00_05","WP62093_00_05","WP62087_00_05","WP62081_00_05","WP62077_00_05","WP62069_00_05","WP62059_00_05","WP62045_00_05","WP62041_00_05","WP62039_00_05","WP62037_00_05","WP62035_00_05","WP62011_00_05","WP62009_00_05","WP62001_00_05","WP62201_00_05 Q+","WP62211_00_05 Q+","WP62227_00_05 Q+","WP62223_00_05 Q+","WP62221_00_05 Q+","WP62219_00_05 Q+","WP62213_00_05 Q+","WP62209_00_05 Q+","WP62205_00_05 Q+","WP62203_00_05 Q+","WP62197_00_05 Q+","WP62193_00_05 Q+","WP62189_00_05 Q+","WP62191_00_05 Q+","WP62187_00_05 Q+","WP62185_00_05 Q+","WP62183_00_05 Q+","WP62179_00_05 Q+","WP62177_00_05 Q+","WP62175_00_05 Q+","WP62171_00_05 Q+","WP62165_00_05 Q+","WP62163_00_05 Q+","WP62157_00_05 Q+","WP62151_00_05 Q+","WP62145_00_05 Q+","WP62135_00_05 Q+","WP62131_00_05 Q+","WP62125_00_05 Q+","WP62123_00_05 Q+","WP62119_00_05 Q+","WP62115_00_05 Q+","WP62111_00_05 Q+","WP62107_00_05 Q+","WP62101_00_05 Q+","WP62139_00_05 Q+","WP62147_00_05 Q+","WP62155_00_05 Q+","WP62167_00_05 Q+","WP62181_00_05 Q+","WP62095_00_05 Q+","WP62089_00_05 Q+","WP62065_00_05 Q+","WP62079_00_05 Q+","WP62075_00_05 Q+","WP62071_00_05 Q+","WP62061_00_05 Q+","WP62057_00_05 Q+","WP62053_00_05 Q+","WP62051_00_05 Q+","WP62049_00_05 Q+","WP62047_00_05 Q+","WP62108_00_05","WP62102_00_05","WP62098_00_05","WP62092_00_05","WP62086_00_05","WP62080_00_05","WP62076_00_05","WP62068_00_05","WP62058_00_05","WP62044_00_05","WP62040_00_05","WP62038_00_05","WP62036_00_05","WP62034_00_05","WP62010_00_05","WP62008_00_05","WP62000_00_05","WP52936_00_05","WP52852_00_05 Q+","WP52850_00_05 Q+","WP52930_00_05","WP52928_00_05","WP52926_00_05","WP52922_00_05","WP52920_00_05","WP52894_00_05","WP52888_00_05","WP52886_00_05","WP52880_00_05","WP52846_00_05 Q+","WP52844_00_05 Q+","WP52842_00_05","WP52840_00_05 Q+","WP52838_00_05 Q+","WP52836_00_05","WP52834_00_05 Q+","WP52854_00_05 Q+","WP52904_00_05 Q+","WP52900_00_05","WP52896_00_05 Q+","WP52892_00_05 Q+","WP52862_00_05","WP52866_00_05 Q+","WP52870_00_05 Q+","WP52874_00_05","WP52878_00_05 Q+","WP52884_00_05","WP62200_00_05 Q+","WP62394_00_05 Q+","WP62166_00_05 Q+","WP62154_00_05 Q+","WP62146_00_05 Q+","WP62138_00_05 Q+","WP62134_00_05 Q+","WP62130_00_05 Q+","WP62124_00_05 Q+","WP62122_00_05 Q+","WP62118_00_05 Q+","WP62114_00_05 Q+","WP62110_00_05 Q+","WP62106_00_05 Q+","WP62100_00_05 Q+","WP62094_00_05 Q+","WP62088_00_05 Q+","WP62084_00_05 Q+","WP62078_00_05 Q+","WP62074_00_05 Q+","WP62070_00_05 Q+","WP62060_00_05 Q+","WP62056_00_05 Q+","WP62052_00_05 Q+","WP62050_00_05 Q+","WP62048_00_05 Q+","WP62046_00_05 Q+","WP62184_00_05 Q+","WP62182_00_05 Q+","WP62178_00_05 Q+","WP52176_00_05 Q+","WP62174_00_05 Q+","WP62170_00_05 Q+","WP62164_00_05 Q+","WP62162_00_05 Q+","WP62156_00_05 Q+","WP62150_00_05 Q+","WP62144_00_05 Q+","WP62062_00_05 Q+","WP62066_00_05 Q+","WP62222_00_05 Q+","WP62220_00_05 Q+","WP62212_00_05 Q+","WP62208_00_05 Q+","WP62204_00_05 Q+","WP62202_00_05 Q+","WP62196_00_05 Q+","WP62192_00_05 Q+","WP62188_00_05 Q+","WP62190_00_05 Q+","WP50001_00_05","WP50003_00_05","WP50005_00_05","WP50007_00_05","WP50009_00_05","WP50013_00_05","WP50017_00_05","WP50019_00_05","WP50021_00_05","WP50023_00_05","WP50025_00_05","WP50027_00_05","WP50029_00_05","WP50031_00_05","WP50033_00_05","WP50065_00_05","WP50061_00_05","WP50059_00_05","WP50055_00_05","WP50057_00_05","WP50053_00_05","WP50049_00_05","WP50051_00_05","WP50045_00_05","WP50047_00_05","WP50037_00_05","WP50035_00_05","WP50043_00_05","WP50041_00_05","WP50000_00_05","WP50002_00_05","WP50004_00_05","WP50006_00_05","WP50008_00_05","WP50010_00_05","WP50014_00_05","WP50018_00_05","WP50020_00_05","WP50022_00_05","WP50024_00_05","WP50026_00_05","WP50028_00_05","WP50030_00_05","WP50032_00_05","WP50062_00_05","WP50060_00_05","WP50058_00_05","WP50054_00_05","WP50056_00_05","WP50052_00_05","WP50048_00_05","WP50050_00_05","WP50044_00_05","WP50046_00_05","WP50036_00_05","WP50034_00_05","WP50042_00_05","WP50038_00_05"}
+			RETURN
+			IF(
+			    [SP_TRATADO] IN VP218CC || 
+			    [SP_TRATADO] IN Pontos_Antigos || 
+			    [SP_TRATADO] IN VP218CS ||  
+			    [spotName] IN VP218CC || 
+			    [spotName] IN Pontos_Antigos || 
+			    [spotName] IN VP218CS ||
+			    [spotName] IN X6H ||
+			    [SP_TRATADO] IN X6H,
+			    "VÃO DE PORTA", 
+			    "PONTO NORMAL"
+			)
+			
+			```
+		lineageTag: 161ae935-2d65-4d45-bd48-c389a5e91129
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column quality_point
+		dataType: string
+		lineageTag: fc72a82b-65e5-42cb-b2ac-89a78027ac48
+		summarizeBy: none
+		sourceColumn: quality_point
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 7b16e806-8e8c-4cd5-bdf7-1d6f636274e1
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column energyActualValue
+		dataType: double
+		lineageTag: ad369f4d-319f-47b4-a4e3-e5b1440e0d10
+		summarizeBy: sum
+		sourceColumn: energyActualValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column powerActualValue
+		dataType: double
+		lineageTag: 8f140794-ed79-4718-8552-2e90c7c72563
+		summarizeBy: sum
+		sourceColumn: powerActualValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column row_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 84456222-6d9e-4d67-92d0-05e54b8a2d83
+		summarizeBy: sum
+		sourceColumn: row_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column count_Tem_Splash
+		dataType: int64
+		formatString: 0
+		lineageTag: 0c355abf-836c-40db-b8b1-d918b2a98f2e
+		summarizeBy: sum
+		sourceColumn: count_Tem_Splash
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status_Measuring
+		dataType: string
+		lineageTag: f5e7d4d9-c807-4ecb-8c3d-d95da3230660
+		summarizeBy: none
+		sourceColumn: Status_Measuring
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status_Monitoring
+		dataType: string
+		lineageTag: 0fd3e5a5-2f1c-4332-8dbb-294dd3f30f9b
+		summarizeBy: none
+		sourceColumn: Status_Monitoring
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status_Regulation
+		dataType: string
+		lineageTag: 401c1539-f2fe-4583-8abd-6d8f013bbe62
+		summarizeBy: none
+		sourceColumn: Status_Regulation
+
+		annotation SummarizationSetBy = Automatic
+
+	column resistanceRefValue
+		dataType: double
+		lineageTag: b0f48619-ddc7-4aa4-9cfd-50f50a2ad15d
+		summarizeBy: sum
+		sourceColumn: resistanceRefValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column UTE = ```
+			
+			SWITCH(
+			    TRUE(),
+			    Fato_Solda[Line] IN {"AUC", "AUE", "FDA", "FPD", "FPS", "FSA", "OFD", "OFS", "PAN", "PBP", "PPA", "PPF", "SCC", "SCE", "SPG", "SPJ", "TAC", "TDF", "TEA", "TLF", "TOD", "TOS", "TSA", "TSC", "TSP", "TUP", "TVS"}, "UTE 1",
+			    Fato_Solda[Line]  IN {"COF", "PLCD", "PLCS", "PLD", "PLS", "PPCD", "PPCS", "PPD", "PPG", "PPP", "PPS", "PRD", "PRS", "SPO"}, "UTE 2",
+			    BLANK()
+			)
+			
+			```
+		lineageTag: 07eb4b54-db27-46c8-8a67-f4e699e72644
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column lineEdit
+		dataType: string
+		lineageTag: 9ed04960-7102-45f2-90cb-ebd1abc65dd0
+		summarizeBy: none
+		sourceColumn: lineEdit
+
+		annotation SummarizationSetBy = Automatic
+
+	column StatusDADOS = ```
+			
+			VAR CurrentTimerName = Fato_Solda[timerName]
+			
+			VAR LatestTimeSlot =
+			    CALCULATE(
+			        MAX(Fato_Solda[dateTime]),
+			        FILTER(
+			            ALL(Fato_Solda),
+			            Fato_Solda[timerName] = CurrentTimerName
+			        )
+			    )
+			
+			VAR GlobalLatestDate = CALCULATE(MAX(Fato_Solda[dateTime]), ALL(Fato_Solda))
+			
+			// Compara se o número da semana do ano e o ano são os mesmos
+			RETURN
+			    IF(
+			        WEEKNUM(LatestTimeSlot, 2) = WEEKNUM(GlobalLatestDate, 2) && 
+			        YEAR(LatestTimeSlot) = YEAR(GlobalLatestDate),
+			        "Updated",
+			        "Outdated"
+			    )
+			```
+		lineageTag: 4a7941b6-e0d6-41d2-b7d7-56145d85b071
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column X_Eixo = ```
+			
+			DATEDIFF(
+			    CALCULATE(
+			        MIN('Fato_Solda'[dateTime]),
+			        ALLEXCEPT('Fato_Solda', 'Fato_Solda'[timerName])
+			    ),
+			    'Fato_Solda'[dateTime],
+			    DAY
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 1262ca92-0b46-47e9-9144-08b54786c9f2
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'β0_pha2_norm col' =
+			
+			VAR CurrTimer = SELECTEDVALUE('Fato_Solda'[timerName])
+			
+			-- Base filtrada pela segmentação
+			VAR BaseFiltrada =
+			    FILTER(
+			        'Fato_Solda',
+			        'Fato_Solda'[timerName] = CurrTimer &&
+			        'Fato_Solda'[Data] IN VALUES(Dim_Data[Data])
+			    )
+			
+			-- Cálculo de mínimos e máximos
+			VAR MinimoX = CALCULATE(MIN('Fato_Solda'[X_Eixo]), BaseFiltrada)
+			VAR MaximoX = CALCULATE(MAX('Fato_Solda'[X_Eixo]), BaseFiltrada)
+			VAR MinimoY = CALCULATE(MIN('Fato_Solda'[pha2]), BaseFiltrada)
+			VAR MaximoY = CALCULATE(MAX('Fato_Solda'[pha2]), BaseFiltrada)
+			
+			-- Normalização dos dados
+			VAR TabelaNormalizada =
+			    ADDCOLUMNS(
+			        BaseFiltrada,
+			        "NormX", DIVIDE('Fato_Solda'[X_Eixo] - MinimoX, MaximoX - MinimoX),
+			        "NormY", DIVIDE('Fato_Solda'[pha2] - MinimoY, MaximoY - MinimoY)
+			    )
+			
+			-- Médias dos dados normalizados
+			VAR MediaNormX = AVERAGEX(TabelaNormalizada, [NormX])
+			VAR MediaNormY = AVERAGEX(TabelaNormalizada, [NormY])
+			
+			-- Cálculo de beta1 (coeficiente angular)
+			VAR TabelaDif =
+			    ADDCOLUMNS(
+			        TabelaNormalizada,
+			        "DifX", [NormX] - MediaNormX,
+			        "DifY", [NormY] - MediaNormY
+			    )
+			VAR CovXY = SUMX(TabelaDif, [DifX] * [DifY])
+			VAR VariX = SUMX(TabelaDif, [DifX] * [DifX])
+			VAR Beta1 = IF(VariX = 0, BLANK(), CovXY / VariX)
+			
+			-- Intercepto normalizado
+			VAR Beta0 = MediaNormY - Beta1 * MediaNormX
+			
+			RETURN
+			    Beta0
+		lineageTag: 6c504511-7b8d-4ec4-8d2d-0bcd6a0fc168
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'β1 pha2_norm Col' =
+			
+			VAR CurrTimer = SELECTEDVALUE('Fato_Solda'[timerName])
+			
+			-- Filtra conforme contexto atual (sem ALL)
+			VAR BaseFiltrada =
+			    FILTER(
+			        'Fato_Solda',
+			        'Fato_Solda'[timerName] = CurrTimer &&
+			        'Fato_Solda'[Data] IN VALUES(Dim_Data[Data])
+			    )
+			
+			-- Define data final para cálculo de peso
+			VAR UltimaData = MAXX(BaseFiltrada, 'Fato_Solda'[Data])
+			
+			-- Normalização de X_Eixo
+			VAR MinimoX = MINX(BaseFiltrada, 'Fato_Solda'[X_Eixo])
+			VAR MaximoX = MAXX(BaseFiltrada, 'Fato_Solda'[X_Eixo])
+			VAR IntervaloX = MaximoX - MinimoX
+			
+			-- Normalização de pha2
+			VAR MinimoY = MINX(BaseFiltrada, 'Fato_Solda'[pha2])
+			VAR MaximoY = MAXX(BaseFiltrada, 'Fato_Solda'[pha2])
+			VAR IntervaloY = MaximoY - MinimoY
+			
+			-- Tabela com pesos e dados normalizados
+			VAR TabelaComPeso =
+			    ADDCOLUMNS(
+			        BaseFiltrada,
+			        "Peso", EXP(-0.2 * DATEDIFF('Fato_Solda'[Data], UltimaData, DAY)),
+			        "Xn", DIVIDE('Fato_Solda'[X_Eixo] - MinimoX, IntervaloX),
+			        "Yn", DIVIDE('Fato_Solda'[pha2] - MinimoY, IntervaloY)
+			    )
+			
+			-- Médias ponderadas
+			VAR SomaPeso = SUMX(TabelaComPeso, [Peso])
+			VAR MediaX = SUMX(TabelaComPeso, [Xn] * [Peso]) / SomaPeso
+			VAR MediaY = SUMX(TabelaComPeso, [Yn] * [Peso]) / SomaPeso
+			
+			-- Diferenças e cálculo da covariância/variância ponderadas
+			VAR TabelaDif =
+			    ADDCOLUMNS(
+			        TabelaComPeso,
+			        "DifX", [Xn] - MediaX,
+			        "DifY", [Yn] - MediaY
+			    )
+			
+			VAR CovXY = SUMX(TabelaDif, [Peso] * [DifX] * [DifY])
+			VAR VariX = SUMX(TabelaDif, [Peso] * [DifX] * [DifX])
+			
+			-- Inclinação e ângulo
+			VAR Beta = IF(VariX = 0, BLANK(), CovXY / VariX)
+			VAR Angulo = DEGREES(ATAN(Beta))
+			
+			RETURN
+			    Beta
+		lineageTag: 92c1c687-c22a-4837-99f1-69b1c211e13f
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column electrodeNo
+		dataType: string
+		lineageTag: 66bd1586-f341-4155-9d0f-5ee24e217e9e
+		summarizeBy: none
+		sourceColumn: electrodeNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 92d1915f-7427-4933-8c29-9211ff0fc73b
+		summarizeBy: none
+		sourceColumn: dateTime
+
+		annotation SummarizationSetBy = Automatic
+
+	column double_point
+		dataType: int64
+		formatString: 0
+		lineageTag: 991da7a2-93bc-430c-9abe-86c561008da1
+		summarizeBy: sum
+		sourceColumn: double_point
+
+		annotation SummarizationSetBy = Automatic
+
+	column Modelo_cod
+		dataType: string
+		lineageTag: 1ce8223c-201e-422f-a2d8-7b83152643a0
+		summarizeBy: none
+		sourceColumn: Modelo_cod
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fato_Solda = m
+		mode: import
+		source = ```
+				let
+				    Fonte = GoogleBigQuery.Database(),
+				    #"data-lake-manufacturing" = Fonte{[Name="data-lake-manufacturing"]}[Data],
+				    Analytics_emille_Schema = #"data-lake-manufacturing"{[Name="Analytics_emille",Kind="Schema"]}[Data],
+				    tb_Agg_WeldMeasureProt_Table = Analytics_emille_Schema{[Name="tb_Agg_WeldMeasureProt",Kind="Table"]}[Data],
+				    #"Colunas Renomeadas1" = Table.RenameColumns(tb_Agg_WeldMeasureProt_Table,{{"day_key", "dateTime"}, {"count_double_point", "double_point"}}),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Colunas Renomeadas1",{{"wearPerCent", Percentage.Type}, {"dateTime", type datetimezone}}),
+				    #"Coluna Duplicada" = Table.DuplicateColumn(#"Tipo Alterado", "dateTime", "dateTime - Copiar"),
+				    #"Colunas Renomeadas" = Table.RenameColumns(#"Coluna Duplicada",{{"dateTime - Copiar", "Data"}}),
+				    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Colunas Renomeadas",{{"Data", type date}, {"double_point", Int64.Type}}),
+				    Personalizar1 = Table.AddColumn(#"Tipo Alterado1", "lineEdit", each 
+				    if Text.Contains([timerName], "KGR") then 
+				        [Line] 
+				    else 
+				        Text.Start([timerName], Text.PositionOfAny([timerName], {"0".."9"})), 
+				    type text),
+				    #"Linhas Classificadas" = Table.Sort(Personalizar1,{{"dateTime", Order.Descending}}),
+				    #"Coluna Dividida" = Table.SplitColumn(#"Linhas Classificadas", "spotName", Splitter.SplitTextByDelimiter("_00_", QuoteStyle.Csv), {"spotName", "Modelo_cod"}),
+				    #"Primeiro Caractere Extraído" = Table.TransformColumns(#"Coluna Dividida", {{"Modelo_cod", each Text.Start(_, 1), type text}})
+				in
+				    #"Primeiro Caractere Extraído"
+				```
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navegação
+

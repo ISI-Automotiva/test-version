@@ -1,0 +1,34 @@
+table Reports
+	lineageTag: de41329d-501f-4d60-b201-ceef9a6df0d2
+
+	column Pagina
+		lineageTag: 78068445-1922-4187-978f-6ec048b13071
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Pagina]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Reports = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Pagina", STRING,
+				    {
+				        {"0. DATA UPDATE"},
+				        {"1 WELDING OVERVIEW"},
+				        {"2 ALARMS OVERVIEW"},
+				        {"3.1 REPORT SPLASH GERAL"},
+				        {"3.2 REPORT SPLASH GERAL"},
+				        {"4 PONTOS REPETIDOS"},
+				        {"5 QUALIDADE FRESAGEM"},
+				        {"6 STATUS PSQ"},
+				        {"7 TRENDING PHA"},
+				        {"8 RESISTANCE ACTUAL VALUE"},
+				        {"9 CONSUMO ELETRODOS"},
+				        {"10 PARÂMETROS - OFS"}
+				    }
+				)
+
+	annotation PBI_Id = 03b2a4a2234640e4934150bb59c68f70
+

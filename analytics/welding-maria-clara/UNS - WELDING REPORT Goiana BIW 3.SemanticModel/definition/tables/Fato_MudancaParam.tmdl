@@ -1,0 +1,299 @@
+table Fato_MudancaParam
+	lineageTag: 197d713b-d236-47ce-8485-06f511a8443a
+
+	column protRecord_ID
+		dataType: string
+		lineageTag: ecd0bc72-5a3a-4602-b68a-4570e71219ae
+		summarizeBy: none
+		sourceColumn: protRecord_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9975a15a-4220-4bb7-8ef1-3ade8c198e04
+		summarizeBy: none
+		sourceColumn: dateTime
+
+		annotation SummarizationSetBy = Automatic
+
+	column timerName
+		dataType: string
+		lineageTag: 66c5cff1-0286-4af1-9619-4ff7739f2e31
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column param_ID
+		dataType: string
+		lineageTag: d89720fe-a106-40d8-bae0-d25e1fd7b005
+		summarizeBy: none
+		sourceColumn: param_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column param_status_txt
+		dataType: string
+		lineageTag: 896eca44-dc20-4ae9-a44a-22948b400a5a
+		summarizeBy: none
+		sourceColumn: param_status_txt
+
+		annotation SummarizationSetBy = Automatic
+
+	column subIndex
+		dataType: string
+		lineageTag: 11b5e578-9b73-4ef5-9a14-798a00cef7c9
+		summarizeBy: none
+		sourceColumn: subIndex
+
+		annotation SummarizationSetBy = Automatic
+
+	column oldValue
+		dataType: string
+		lineageTag: beb06020-3c39-4679-86c5-f2a5d77226d5
+		summarizeBy: none
+		sourceColumn: oldValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column oldValue_txt
+		dataType: string
+		lineageTag: 11fed6b1-0704-4a64-8875-16874a5ceb7c
+		summarizeBy: none
+		sourceColumn: oldValue_txt
+
+		annotation SummarizationSetBy = Automatic
+
+	column newValue
+		dataType: string
+		lineageTag: 406d1eaa-365f-4c43-9626-55d9382ae598
+		summarizeBy: none
+		sourceColumn: newValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column newValue_txt
+		dataType: string
+		lineageTag: 025a0c3e-3523-45cf-bbb1-0271097bc91c
+		summarizeBy: none
+		sourceColumn: newValue_txt
+
+		annotation SummarizationSetBy = Automatic
+
+	column oldNormValue
+		dataType: string
+		lineageTag: 33c5caec-1ebc-402c-ad86-e1b4ef46c967
+		summarizeBy: none
+		sourceColumn: oldNormValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column newNormValue
+		dataType: string
+		lineageTag: aa853e9b-c318-4add-b17e-a34197b192ca
+		summarizeBy: none
+		sourceColumn: newNormValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column physicalUnitId
+		dataType: string
+		lineageTag: c9da0fb5-549d-4cf6-a640-94680bebf055
+		summarizeBy: none
+		sourceColumn: physicalUnitId
+
+		annotation SummarizationSetBy = Automatic
+
+	column physicalUnitId_txt
+		dataType: string
+		lineageTag: 8f5886b0-e7a4-4d39-88f7-927229ece802
+		summarizeBy: none
+		sourceColumn: physicalUnitId_txt
+
+		annotation SummarizationSetBy = Automatic
+
+	column computerName
+		dataType: string
+		lineageTag: 29a6a8e3-8f62-42b6-a993-9fe032dbb3e5
+		summarizeBy: none
+		sourceColumn: computerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column userName
+		dataType: string
+		lineageTag: 5eb3a1bc-1ff8-4fc2-bf90-7df524ec5d18
+		summarizeBy: none
+		sourceColumn: userName
+
+		annotation SummarizationSetBy = Automatic
+
+	column comment
+		dataType: string
+		lineageTag: 5592887e-c80a-4727-abfd-4b1ef2ce16b7
+		summarizeBy: none
+		sourceColumn: comment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Status Old' = ```
+			
+			VAR ThistimerName =
+			    Fato_MudancaParam[timerName]
+			
+			VAR LatestTimeSlot =
+			    CALCULATE(
+			        MAX(Fato_MudancaParam[dateTime]),
+			        Fato_MudancaParam[timerName] = ThistimerName, all(Fato_MudancaParam)
+			    )
+			VAR Status_Desligada =
+			    LOOKUPVALUE(
+			        Fato_MudancaParam[dateTime],
+			        Fato_MudancaParam[oldValue_txt], "Deslig",
+			        Fato_MudancaParam[dateTime], LatestTimeSlot, 
+			        Fato_MudancaParam[timerName], ThistimerName
+			    )
+			
+			    
+			VAR Status_Ligado =
+			    LOOKUPVALUE(
+			        Fato_MudancaParam[oldValue_txt],
+			        Fato_MudancaParam[dateTime], LatestTimeSlot,
+			        Fato_MudancaParam[timerName], ThistimerName,
+			        Fato_MudancaParam[oldValue_txt], "Ligado"
+			    )
+			
+			VAR Status_Final = 
+			    IF(NOT ISBLANK(Status_Desligada), "Desligada",
+			        IF(NOT ISBLANK(Status_Ligado), "Ligada", "Desconhecida")
+			    )
+			
+			RETURN
+			    Status_Final
+			
+			
+			
+			```
+		lineageTag: ed3ab39c-6c5d-47d7-ad6f-e9f0f4faa787
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Status New' = ```
+			
+			VAR ThistimerName =
+			    Fato_MudancaParam[timerName]
+			
+			VAR LatestTimeSlot =
+			    CALCULATE(
+			        MAX(Fato_MudancaParam[dateTime]),
+			        Fato_MudancaParam[timerName] = ThistimerName, all(Fato_MudancaParam)
+			    )
+			VAR Status_Desligada =
+			    LOOKUPVALUE(
+			        Fato_MudancaParam[dateTime],
+			        Fato_MudancaParam[newValue_txt], "Deslig",
+			        Fato_MudancaParam[dateTime], LatestTimeSlot, 
+			        Fato_MudancaParam[timerName], ThistimerName
+			    )
+			
+			    
+			VAR Status_Ligado =
+			    LOOKUPVALUE(
+			        Fato_MudancaParam[newValue_txt],
+			        Fato_MudancaParam[dateTime], LatestTimeSlot,
+			        Fato_MudancaParam[timerName], ThistimerName,
+			        Fato_MudancaParam[newValue_txt], "Ligado"
+			    )
+			
+			VAR Status_Final = 
+			    IF(NOT ISBLANK(Status_Desligada), "Desligada",
+			        IF(NOT ISBLANK(Status_Ligado), "Ligada", "Desconhecida")
+			    )
+			
+			RETURN
+			    Status_Final
+			
+			
+			
+			```
+		lineageTag: 0e086376-9827-44cb-9cba-44a93451a2c2
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3d7c590a-d194-4ec5-84bd-9fe508ac1d9f
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Fato_MudancaParam = m
+		mode: import
+		source = ```
+				let
+				    SqlString = "
+				        SELECT
+				            JSON_VALUE(payload, '$.protRecord_ID')      AS protRecord_ID,
+				            JSON_VALUE(payload, '$.dateTime')           AS dateTime,
+				            JSON_VALUE(payload, '$.timerName')          AS timerName,
+				            JSON_VALUE(payload, '$.param_ID')           AS param_ID,
+				            JSON_VALUE(payload, '$.param_status_txt')   AS param_status_txt, -- Coluna sem alteração
+				            JSON_VALUE(payload, '$.subIndex')           AS subIndex,
+				            JSON_VALUE(payload, '$.oldValue')           AS oldValue,
+				            JSON_VALUE(payload, '$.oldValue_txt')       AS oldValue_txt,
+				            JSON_VALUE(payload, '$.newValue')           AS newValue,
+				            JSON_VALUE(payload, '$.newValue_txt')       AS newValue_txt,
+				            JSON_VALUE(payload, '$.oldNormValue')       AS oldNormValue,
+				            JSON_VALUE(payload, '$.newNormValue')       AS newNormValue,
+				            JSON_VALUE(payload, '$.physicalUnitId')     AS physicalUnitId,
+				            JSON_VALUE(payload, '$.physicalUnitId_txt') AS physicalUnitId_txt,
+				            JSON_VALUE(payload, '$.computerName')       AS computerName,
+				            JSON_VALUE(payload, '$.userName')           AS userName,
+				            JSON_VALUE(payload, '$.comment')            AS comment
+				        FROM
+				            `data-lake-manufacturing.Analytics_emille.vw_rawpubsubdata`
+				        WHERE
+				            TIMESTAMP >= TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH))
+				            AND Topic LIKE '%DataProducts%ExtDataChangeProt%'
+				    ",
+				    // 1. Conecta ao banco do Google BigQuery
+				    BQ = GoogleBigQuery.Database(),
+				    
+				    // 2. Seleciona o Projeto onde a query será executada
+				    Projeto = BQ{[Name="data-lake-manufacturing"]}[Data],
+				    
+				    // 3. Executa a string SQL diretamente no projeto
+				    Fonte = Value.NativeQuery(Projeto, SqlString, null, [EnableFolding=true]),
+				    #"Valor Substituído" = Table.ReplaceValue(Fonte,"presso","pressão",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído1" = Table.ReplaceValue(#"Valor Substituído","1","1º",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído2" = Table.ReplaceValue(#"Valor Substituído1","2","2º",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído3" = Table.ReplaceValue(#"Valor Substituído2","3","3º",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído4" = Table.ReplaceValue(#"Valor Substituído3","ps","pós",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído5" = Table.ReplaceValue(#"Valor Substituído4","Pr","Pré",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído6" = Table.ReplaceValue(#"Valor Substituído5","Mx","Máximo",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído7" = Table.ReplaceValue(#"Valor Substituído6","Medio","Medição",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído8" = Table.ReplaceValue(#"Valor Substituído7","N. ","Nº.",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído9" = Table.ReplaceValue(#"Valor Substituído8","Potncia","Potência",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído10" = Table.ReplaceValue(#"Valor Substituído9","Monitorao","Monitoração (S)",Replacer.ReplaceText,{"param_status_txt"}),
+				    #"Valor Substituído11" = Table.ReplaceValue(#"Valor Substituído10","rio","ário",Replacer.ReplaceText,{"oldValue_txt"}),
+				    #"Tipo Alterado" = Table.ReplaceValue(#"Valor Substituído11","rio", "ário",Replacer.ReplaceText,{"newValue_txt"}),
+				    #"Tipo Fuso Horario" = Table.TransformColumnTypes(#"Tipo Alterado",{{"dateTime", type datetimezone}}),
+				    #"Coluna Duplicada" = Table.DuplicateColumn(#"Tipo Fuso Horario", "dateTime", "Data"),
+				    #"Tipo Data Final" = Table.TransformColumnTypes(#"Coluna Duplicada",{{"Data", type date}}),
+				  #"Linhas classificadas" = Table.Sort(#"Tipo Data Final", {{"dateTime", Order.Descending}})
+				in
+				    #"Linhas classificadas"
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

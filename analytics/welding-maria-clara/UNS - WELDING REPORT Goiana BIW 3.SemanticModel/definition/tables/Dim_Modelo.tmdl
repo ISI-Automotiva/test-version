@@ -1,0 +1,45 @@
+table Dim_Modelo
+	lineageTag: f61291d4-058d-4118-bb43-6363d853f872
+
+	column model_cod
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ed3e110-cba2-4dca-957d-6b9c5552a829
+		summarizeBy: none
+		sourceColumn: model_cod
+
+		annotation SummarizationSetBy = Automatic
+
+	column model
+		dataType: string
+		lineageTag: 4769c1e4-92d2-431f-9e90-f96b900fb149
+		summarizeBy: none
+		sourceColumn: model
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Modelo = m
+		mode: import
+		source = ```
+				let
+				    Fonte = #table(
+				        type table [
+				            model_cod = Int64.Type, 
+				            model = text
+				        ],
+				        {
+				            {0, "Renegade"},
+				            {1, "Toro"},
+				            {2, "Compass"},
+				            {3, "Commander"},
+				            {4, "Rampage"}
+				        }
+				    )
+				in
+				    Fonte
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,107 @@
+table Dim_Data
+	lineageTag: 3176ce77-1e56-4100-a87d-c65e489e341b
+	dataCategory: Time
+
+	column Data
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: b1819471-cd9d-44ff-8bda-05fe3c21cc03
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Ano
+		dataType: int64
+		formatString: 0
+		lineageTag: 8c9f983e-e1cd-4ddc-8574-fd8e849654ef
+		summarizeBy: sum
+		sourceColumn: Ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano-Mês
+		dataType: string
+		lineageTag: 9cb3c374-81b8-4df1-8068-f591696ea775
+		summarizeBy: none
+		sourceColumn: Ano-Mês
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano-Semana
+		dataType: string
+		lineageTag: 52a6d603-9378-47fc-9bfb-ebfbe6a981d4
+		summarizeBy: none
+		sourceColumn: Ano-Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mês (Nome)'
+		dataType: string
+		lineageTag: c40dbadf-2e92-445f-9785-292f1070545b
+		summarizeBy: none
+		sourceColumn: Mês (Nome)
+
+		annotation SummarizationSetBy = Automatic
+
+	column Semana
+		dataType: int64
+		formatString: 0
+		lineageTag: e1505103-148c-40a8-a4e2-0c6a09371bca
+		summarizeBy: sum
+		sourceColumn: Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dia da Semana'
+		dataType: string
+		lineageTag: fa375833-cedc-40ed-b04e-50cee564a242
+		summarizeBy: none
+		sourceColumn: Dia da Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Data-73bc83cc-273f-4dbb-a550-f3e0546605bf = m
+		mode: import
+		source = ```
+				let
+				    // Definir o ano de início e o ano atual
+				    DataInicio = #date(2025, 1, 1), // Janeiro de 2025
+				    DataHoje = DateTime.LocalNow(),  // Data de hoje
+				    DataFinal = Date.From(DataHoje), // Converter para data sem hora
+				
+				    // Criar uma lista de datas entre DataInicio e DataFinal
+				    ListaDatas = List.Dates(DataInicio, Duration.Days(DataFinal - DataInicio) + 1, #duration(1, 0, 0, 0)),
+				    
+				    // Converter a lista de datas para uma tabela
+				    TabelaCalendario = Table.FromList(ListaDatas, Splitter.SplitByNothing(), {"Data"}),
+				
+				    // Adicionar colunas com o ano, mês (nome), semana, ano-mês e ano-semana
+				    AdicionarAno = Table.AddColumn(TabelaCalendario, "Ano", each Date.Year([Data]), Int64.Type),
+				    AdicionarMes = Table.AddColumn(AdicionarAno, "Mês (Nome)", each Date.ToText([Data], "MMMM"), type text),
+				    AdicionarSemana = Table.AddColumn(AdicionarMes, "Semana", each Date.WeekOfYear([Data]), Int64.Type),
+				    AdicionarAnoMes = Table.AddColumn(AdicionarSemana, "Ano-Mês", each Date.ToText([Data], "yyyy-MM"), type text),
+				    // Ajuste para Ano-Semana, usando um formato correto
+				    AdicionarAnoSemana = Table.AddColumn(AdicionarAnoMes, "Ano-Semana", each Text.Combine({Text.From(Date.Year([Data])), "-", Text.PadStart(Text.From(Date.WeekOfYear([Data])), 2, "0")}), type text),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(AdicionarAnoSemana,{{"Data", type date}} ),
+				    #"Linhas Classificadas" = Table.Sort(#"Tipo Alterado",{{"Data", Order.Descending}}),
+				    Personalizar1 = Table.AddColumn(
+				    #"Tipo Alterado",
+				    "Dia da Semana",
+				    each Date.DayOfWeekName([Data], "pt-BR"),
+				    type text
+				),
+				    #"Linhas Classificadas1" = Table.Sort(Personalizar1,{{ "Data",Order.Ascending}})
+				in
+				    #"Linhas Classificadas1"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação
+
