@@ -1,0 +1,374 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {},
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "c99ce2bd1f4fb1e76b5d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RT_EventosMáquina"
+              }
+            },
+            "Property": "Machine"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "r",
+              "Entity": "RT_EventosMáquina",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Not": {
+                  "Expression": {
+                    "In": {
+                      "Expressions": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "r"
+                              }
+                            },
+                            "Property": "Machine"
+                          }
+                        }
+                      ],
+                      "Values": [
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF037R01-LD'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'PAN035PC01-LD'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'PAN035R01-LD'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'FSA060DL'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010R01'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010R03'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010R04'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010R05'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010T03'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010T04'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010T05'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010T06'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'TUP014PC02-DLD'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010TT01'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'COF010R06'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'PAN026R01'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'FDA060DL'"
+                            }
+                          }
+                        ],
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'TUP014R02-LD'"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "1de1e5d47a68a7a8946b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RT_EventosMáquina"
+              }
+            },
+            "Property": "Machine"
+          }
+        },
+        "type": "Advanced",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "r",
+              "Entity": "RT_EventosMáquina",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Or": {
+                  "Left": {
+                    "Not": {
+                      "Expression": {
+                        "Contains": {
+                          "Left": {
+                            "Column": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Source": "r"
+                                }
+                              },
+                              "Property": "Machine"
+                            }
+                          },
+                          "Right": {
+                            "Literal": {
+                              "Value": "'DL'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "Right": {
+                    "Not": {
+                      "Expression": {
+                        "Contains": {
+                          "Left": {
+                            "Column": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Source": "r"
+                                }
+                              },
+                              "Property": "Machine"
+                            }
+                          },
+                          "Right": {
+                            "Literal": {
+                              "Value": "'LD'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
+  },
+  "objects": {
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "publicCustomVisuals": [
+    "PBI_CV_815282F9_27F5_4950_9430_E910E0A8DB6A",
+    "synopticPanelByOKVIZC365478550CD4DC0A2ED985DC3E23EED",
+    "sCADAvisA1696DB7096B4CBBA3B7595D70A805AF",
+    "iconMapProE938B1CED4834168A55864E1F8E7242E",
+    "violinPlot4D46EB9EB3A141D9BA2289793175D971",
+    "BoxandWhiskerByMAQ1823AD39DT234AB532063E128AX"
+  ],
+  "resourcePackages": [
+    {
+      "name": "PBI_CV_886A053E_9DFD_4EA0_A47D_CCAEB89AF969_DEV",
+      "type": "CustomVisual",
+      "items": [
+        {
+          "name": "PBI_CV_886A053E_9DFD_4EA0_A47D_CCAEB89AF969_DEV.pbiviz.json",
+          "path": "PBI_CV_886A053E_9DFD_4EA0_A47D_CCAEB89AF969_DEV.pbiviz.json",
+          "type": "CustomVisualMetadata"
+        }
+      ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "5082720842877447976992.png",
+          "path": "5082720842877447976992.png",
+          "type": "Image"
+        },
+        {
+          "name": "Gemini_Generated_Image_7dxu7n79180454702599572.png",
+          "path": "Gemini_Generated_Image_7dxu7n79180454702599572.png",
+          "type": "Image"
+        },
+        {
+          "name": "Gemini_Generated_Image_y5t2kdy43685420747935544.png",
+          "path": "Gemini_Generated_Image_y5t2kdy43685420747935544.png",
+          "type": "Image"
+        },
+        {
+          "name": "images_(1)_(2)08670621341093421.png",
+          "path": "images_(1)_(2)08670621341093421.png",
+          "type": "Image"
+        },
+        {
+          "name": "Jeep_Badge_Logo7690710588025125.png",
+          "path": "Jeep_Badge_Logo7690710588025125.png",
+          "type": "Image"
+        },
+        {
+          "name": "Logo-texte-blanc-transparent-B6641170906716336.png",
+          "path": "Logo-texte-blanc-transparent-B6641170906716336.png",
+          "type": "Image"
+        }
+      ]
+    },
+    {
+      "name": "PBI_CV_815282F9_27F5_4950_9430_E910E0A8DB6A",
+      "type": "CustomVisual",
+      "items": [
+        {
+          "name": "PBI_CV_815282F9_27F5_4950_9430_E910E0A8DB6A.pbiviz.json",
+          "path": "PBI_CV_815282F9_27F5_4950_9430_E910E0A8DB6A.pbiviz.json",
+          "type": "CustomVisualMetadata"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "defaultDrillFilterOtherVisuals": true,
+    "useEnhancedTooltips": true
+  },
+  "slowDataSourceSettings": {
+    "isCrossHighlightingDisabled": false,
+    "isSlicerSelectionsButtonEnabled": false,
+    "isFilterSelectionsButtonEnabled": false,
+    "isFieldWellButtonEnabled": false,
+    "isApplyAllButtonEnabled": false
+  }
+}

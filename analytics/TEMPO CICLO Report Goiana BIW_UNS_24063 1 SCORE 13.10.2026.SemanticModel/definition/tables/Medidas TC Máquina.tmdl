@@ -1,0 +1,84 @@
+table 'Medidas TC Máquina'
+	lineageTag: 65523a47-ce75-4ca3-8eaf-f2d6d92cdb3a
+
+	measure 'TC_Máquina''Q0' = CALCULATE(PERCENTILE.INC('RT_EventosMáquina'[Cycle_Time], .015),ALL('RT_EventosMáquina'[Cycle_Time] ))
+		lineageTag: 7e4efc05-7a6a-4bb4-8d68-0dc59b10c45e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TC_Máquina''Q4' = CALCULATE(PERCENTILE.INC('RT_EventosMáquina'[Cycle_Time], .985),ALL('RT_EventosMáquina'[Cycle_Time] ))
+		lineageTag: 62eeadb3-86d4-4411-8a5b-0e2d29142683
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TC_Máquina''Q1' = CALCULATE(PERCENTILE.INC('RT_EventosMáquina'[Cycle_Time], .25),ALL('RT_EventosMáquina'[Cycle_Time] ))
+		lineageTag: 329d2170-0b41-4a02-8bc9-a1634079d401
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TC_Máquina''Q3' = CALCULATE(PERCENTILE.INC('RT_EventosMáquina'[Cycle_Time], .75),ALL('RT_EventosMáquina'[Cycle_Time] ))
+		lineageTag: 4f87682b-351e-4faf-bc29-66b323079997
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Nº PeçasProduzidasMáquina' = CALCULATE(COUNTROWS('RT_EventosMáquina'))
+		formatString: 0
+		lineageTag: 5c389d9c-4cdb-4c3b-81c8-8e19d6929569
+
+	measure 'TC_Máquina Média' = ```
+			CALCULATE(AVERAGE('RT_EventosMáquina'[Cycle_Time])) 
+			```
+		lineageTag: b157492e-9b1d-47ce-8275-0eb1a0526ce5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TC Mediam' = MEDIAN('RT_EventosMáquina'[Cycle_Time])
+		lineageTag: b3bd4a7f-6ccc-4046-9a34-c3a5cc5f3525
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure TC_Máquina_Média_Interquartil = ```
+			
+			VAR Q1 = [TC_Máquina'Q1]
+			VAR Q3 = [TC_Máquina'Q3]
+			RETURN
+			    CALCULATE(
+			        AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			        FILTER(
+			            ALL('RT_EventosMáquina'),
+			            'RT_EventosMáquina'[Cycle_Time] >= Q1 &&
+			            'RT_EventosMáquina'[Cycle_Time] <= Q3
+			        )
+			    )
+			
+			```
+		formatString: 0
+		lineageTag: fd25b66e-3e3c-4d66-8ee8-34508d60f714
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column 'Coluna 1'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5a58ff9e-79f7-45c5-8691-aac4a3f59fe7
+		summarizeBy: sum
+		sourceColumn: Coluna 1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Medidas TC Máquina-1e70a2d1-45eb-4049-bbac-73dfb01d0f90' = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlSKjQUA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", Int64.Type}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

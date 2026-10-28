@@ -1,0 +1,131 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "fa24b7f6824537da7dcd",
+  "position": {
+    "x": 268,
+    "y": 96,
+    "z": 50004,
+    "height": 352,
+    "width": 1232,
+    "tabOrder": 50004
+  },
+  "visual": {
+    "visualType": "BoxandWhiskerByMAQ1823AD39DT234AB532063E128AX",
+    "query": {
+      "queryState": {
+        "categoryGroup": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RT_EventosMáquina"
+                    }
+                  },
+                  "Property": "Machine"
+                }
+              },
+              "queryRef": "RT_EventosMáquina.Machine",
+              "nativeQueryRef": "Machine",
+              "active": true
+            }
+          ]
+        },
+        "category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RT_EventosMáquina"
+                    }
+                  },
+                  "Property": "dateTime"
+                }
+              },
+              "queryRef": "RT_EventosMáquina.dateTime",
+              "nativeQueryRef": "dateTime"
+            }
+          ]
+        },
+        "measure": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RT_EventosMáquina"
+                        }
+                      },
+                      "Property": "Cycle_Time"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(RT_EventosMáquina.Cycle_Time)",
+              "nativeQueryRef": "Cycle_Time"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "e57717a176a5738e72ad",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RT_EventosMáquina"
+              }
+            },
+            "Property": "Machine"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "1d0e51ab46471a80333c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RT_EventosMáquina"
+              }
+            },
+            "Property": "dateTime"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "1539c35d73e29b52a5cd",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "RT_EventosMáquina"
+                  }
+                },
+                "Property": "Cycle_Time"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

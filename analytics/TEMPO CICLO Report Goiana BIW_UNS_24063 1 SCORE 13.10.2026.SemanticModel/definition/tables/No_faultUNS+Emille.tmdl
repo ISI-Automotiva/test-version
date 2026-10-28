@@ -1,0 +1,367 @@
+table No_faultUNS+Emille
+	lineageTag: e20dab47-65a9-494f-9f0e-17f1c92bc029
+
+	column Shop
+		dataType: string
+		lineageTag: 1829e884-478c-424a-9c6f-e79558136b7d
+		summarizeBy: none
+		sourceColumn: Shop
+
+		annotation SummarizationSetBy = Automatic
+
+	column Line
+		dataType: string
+		lineageTag: dbd40777-e82f-4ec7-afe6-841bcbe096ab
+		summarizeBy: none
+		sourceColumn: Line
+
+		annotation SummarizationSetBy = Automatic
+
+	column Station
+		dataType: string
+		lineageTag: 58cb0094-d8f2-41a2-931b-bcc92b60332d
+		summarizeBy: none
+		sourceColumn: Station
+
+		annotation SummarizationSetBy = Automatic
+
+	column MachineLabel
+		dataType: string
+		lineageTag: 625bb4d4-1d70-405c-bd98-5c022fbcacde
+		summarizeBy: none
+		sourceColumn: MachineLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column C_Good
+		dataType: string
+		lineageTag: cbd84e34-a04a-476e-a50b-7df67d91203e
+		summarizeBy: none
+		sourceColumn: C_Good
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b451700c-fbc6-4453-a591-55d6ef16b71c
+		summarizeBy: none
+		sourceColumn: dateTime
+
+		variation Variation
+			isDefault
+			relationship: 7d232eb5-a06b-45cb-b1e7-2762e3dd7604
+			defaultHierarchy: LocalDateTable_d3bffdb9-f28c-4482-9612-eb1388b1e159.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fault_duration
+		dataType: double
+		lineageTag: da1c4f5b-c2ab-42ce-9219-cc8ba8212f19
+		summarizeBy: sum
+		sourceColumn: Fault_duration
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Fault_start
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 39bf67b8-d0ba-4190-a4e6-6bb668e3a1a4
+		summarizeBy: none
+		sourceColumn: Fault_start
+
+		variation Variation
+			isDefault
+			relationship: 9e6eeab0-6a5c-41b0-b15b-adfe6de779c1
+			defaultHierarchy: LocalDateTable_30f1b5e2-5801-4572-b7db-880193a29d3f.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fault_end
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: f60a5cad-5e76-40b3-8ff0-c0213de130fb
+		summarizeBy: none
+		sourceColumn: Fault_end
+
+		variation Variation
+			isDefault
+			relationship: 43a3d3c9-9ed9-424c-96b9-9e83fa7d001a
+			defaultHierarchy: LocalDateTable_c32bfab3-52a5-4690-92bc-cbba153a8bef.'Hierarquia de datas'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Machine
+		dataType: string
+		lineageTag: f2e473f4-263a-44a3-980a-f9659b154cf2
+		summarizeBy: none
+		sourceColumn: Machine
+
+		annotation SummarizationSetBy = Automatic
+
+	column LinhaEstacao
+		dataType: string
+		lineageTag: 1af56ea2-3490-45c1-a7d5-0b9403ff03d2
+		summarizeBy: none
+		sourceColumn: LinhaEstacao
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataHora
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d11151a8-32bc-45de-bda0-ca72c45550d0
+		summarizeBy: none
+		sourceColumn: DataHora
+
+		annotation SummarizationSetBy = Automatic
+
+	column DuracaoMin
+		dataType: double
+		lineageTag: 80b4f932-c695-40da-8e5b-d3176a8a3a63
+		summarizeBy: sum
+		sourceColumn: DuracaoMin
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ClassificaçãoParada
+		dataType: string
+		lineageTag: 76d6e128-8e05-40c4-b4a2-9f68864c3aaf
+		summarizeBy: none
+		sourceColumn: ClassificaçãoParada
+
+		annotation SummarizationSetBy = Automatic
+
+	partition No_faultUNS+Emille = m
+		mode: import
+		source = ```
+				let
+				    Fonte = GoogleBigQuery.Database(),
+				    #"data-lake-manufacturing" = Fonte{[Name="data-lake-manufacturing"]}[Data],
+				
+				    SQL_Query = "
+				        /* ------------------------------------------------------------------
+				        PARTE 1: Lógica da tabela GOI (Analytics_emille.vw_goi_nofaultcntrl)
+				        ------------------------------------------------------------------ */
+				        WITH base_goi AS (
+				        SELECT
+				            shop AS Shop,
+				            line AS Line,
+				            REGEXP_REPLACE(st, r'[A-Za-z]', '') AS Station,
+				            maq AS Machine,
+				            tipo AS MachineLabel,
+				            CAST(c_good AS STRING) AS C_Good, -- Cast para STRING para alinhar com o JSON da parte 2
+				            timestamp AS dateTime,
+				            duracao / 1000 AS Fault_duration,
+				            iniciotimestamp AS Fault_start,
+				            fimtimestamp AS Fault_end
+				        FROM `data-lake-manufacturing.Analytics_emille.vw_goi_nofaultcntrl`
+				        WHERE shop = 'BiW'
+				            AND DATE(timestamp) >= DATE_SUB(DATE_TRUNC(CURRENT_DATE(), WEEK(MONDAY)), INTERVAL 1 WEEK)
+				            AND statusfalha <> TRUE
+				            AND fimtimestamp IS NOT NULL
+				        ),
+				
+				        m_goi AS (
+				        SELECT
+				            *,
+				            TRIM(Machine) AS machine_trim,
+				            UPPER(TRIM(COALESCE(Machine, ''))) AS upper_machine,
+				            CASE WHEN TRIM(Machine) = '' OR Machine IS NULL THEN FALSE ELSE TRUE END AS has_machine,
+				            REGEXP_CONTAINS(UPPER(COALESCE(Machine,'')), r'R') AS has_r,
+				            REGEXP_CONTAINS(UPPER(COALESCE(Machine,'')), r'DL|LD') AS is_dl_ld,
+				            NULLIF(REGEXP_INSTR(UPPER(COALESCE(Machine,'')), r'R'), 0) AS pos_r
+				        FROM base_goi
+				        ),
+				
+				        m_candidate_goi AS (
+				        SELECT
+				            *,
+				            CASE
+				            WHEN NOT has_machine THEN NULL
+				            WHEN (NOT has_r) OR is_dl_ld THEN
+				                NULLIF(REPLACE(machine_trim, 'ST', ''), '')
+				            WHEN pos_r IS NOT NULL THEN
+				                NULLIF(
+				                REPLACE(
+				                    CONCAT(
+				                    SUBSTR(upper_machine, 1, pos_r),
+				                    REGEXP_REPLACE(SUBSTR(upper_machine, pos_r + 1), r'[^0-9DL]', '')
+				                    ),
+				                    'ST', ''
+				                ), ''
+				                )
+				            ELSE NULL
+				            END AS candidate
+				        FROM m_goi
+				        ),
+				
+				        final_goi AS (
+				        SELECT
+				            Shop,
+				            Line,
+				            Station,
+				            MachineLabel,
+				            C_Good,
+				            dateTime,
+				            Fault_duration,
+				            Fault_start,
+				            Fault_end,
+				            -- Lógica de limpeza de Machine da parte 1
+				            CASE
+				            WHEN candidate IS NULL THEN CONCAT(Line, Station)
+				            WHEN TRIM(candidate) = '' THEN CONCAT(Line, Station)
+				            WHEN REGEXP_CONTAINS(candidate, Line) THEN candidate
+				            ELSE CONCAT(Line, candidate)
+				            END AS Machine,
+				            CONCAT(Line, Station) AS LinhaEstacao,
+				            TIMESTAMP_TRUNC(dateTime, HOUR) AS DataHora
+				        FROM m_candidate_goi
+				        ),
+				
+				        /* ------------------------------------------------------------------
+				        PARTE 2: Lógica da tabela PubSub (Analytics_emille.vw_rawpubsubdata)
+				        ------------------------------------------------------------------ */
+				        base_pubsub AS (
+				            SELECT
+				                TIMESTAMP_MILLIS(CAST(JSON_VALUE(payload, '$._timestamp') AS INT64)) AS dateTime,
+				                JSON_VALUE(payload, '$.Shop')             AS Shop,
+				                JSON_VALUE(payload, '$.Line')             AS Line,
+				                REPLACE(JSON_VALUE(payload, '$.Station'), 'ST', '') AS Station,
+				                JSON_VALUE(payload, '$.Machine')          AS Machine,
+				                JSON_VALUE(payload, '$.C_GOOD')           AS C_Good,
+				                JSON_VALUE(fault, '$.start')              AS Fault_start,
+				                JSON_VALUE(fault, '$.end')                AS Fault_end,
+				                CAST(JSON_VALUE(fault, '$.duration') AS FLOAT64) AS Fault_duration
+				            FROM `data-lake-manufacturing.Analytics_emille.vw_rawpubsubdata`
+				            LEFT JOIN UNNEST(JSON_EXTRACT_ARRAY(payload, '$.Fault_List')) AS fault
+				            WHERE DATE(timestamp) >= DATE_SUB(DATE_TRUNC(CURRENT_DATE(), WEEK(MONDAY)), INTERVAL 3 WEEK)
+				                AND topic LIKE '%DataProducts/CycleTime%' 
+				        ),
+				
+				        linha_estacao_pubsub AS (
+				            SELECT
+				                *,
+				                CONCAT(Line, Station) AS LinhaEstacao1
+				            FROM base_pubsub
+				        ),
+				
+				        tc_ref_pubsub AS (
+				            SELECT *, SPLIT(Line, '_')[SAFE_OFFSET(0)] AS LineClean
+				            FROM linha_estacao_pubsub
+				        ),
+				
+				        substituida_pubsub AS (
+				            SELECT
+				                REPLACE(Station, '_Nw', '') AS Station,
+				                REPLACE(Machine, '_Nw', '') AS Machine,
+				                Shop,
+				                C_Good,
+				                dateTime,
+				                LineClean AS Line,
+				                LinhaEstacao1,
+				                Fault_start,
+				                Fault_end,
+				                Fault_duration
+				            FROM tc_ref_pubsub
+				        ),
+				
+				        machine_label_pubsub AS (
+				            SELECT
+				                *,
+				                CASE
+				                    WHEN Machine = 'ST' OR Machine IS NULL OR Machine = '' THEN 'Station'
+				                    ELSE 'Machine'
+				                END AS MachineLabel
+				            FROM substituida_pubsub
+				        ),
+				
+				        final_pre_pubsub AS (
+				            SELECT
+				                REPLACE(Station, 'ST', '') AS Station,
+				                CASE 
+				                    WHEN Machine IS NULL OR Machine = '' OR Machine = 'ST' THEN ''
+				                    ELSE CONCAT(Line, IFNULL(REPLACE(Machine, 'ST', ''), ''))
+				                END AS Machine,
+				                Shop,
+				                C_Good,
+				                dateTime,
+				                Line,
+				                LinhaEstacao1,
+				                MachineLabel,
+				                Fault_start,
+				                Fault_end,
+				                Fault_duration
+				            FROM machine_label_pubsub
+				        ),
+				
+				        filtro_atividade_pubsub AS (
+				            SELECT 
+				                *,
+				                MAX(dateTime) OVER (PARTITION BY Shop, Line, Station, Machine) as ultima_atividade_maquina
+				            FROM final_pre_pubsub
+				        ),
+				
+				        final_pubsub AS (
+				        SELECT 
+				            Shop,
+				            Line,
+				            Station,
+				            MachineLabel,
+				            C_Good,
+				            -- Sem ajuste de fuso
+				            dateTime,
+				            Fault_duration,
+				            -- Cast para converter String (JSON) para Timestamp, mas sem subtração de horas
+				            CAST(Fault_start AS TIMESTAMP) AS Fault_start,
+				            CAST(Fault_end AS TIMESTAMP)   AS Fault_end,
+				            Machine,
+				            LinhaEstacao1 AS LinhaEstacao,
+				            -- Truncate na hora cheia sem ajuste de fuso
+				            TIMESTAMP_TRUNC(dateTime, HOUR) AS DataHora
+				        FROM filtro_atividade_pubsub
+				        WHERE ultima_atividade_maquina >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
+				        )
+				
+				        /* ------------------------------------------------------------------
+				        UNION ALL: Juntando os resultados
+				        ------------------------------------------------------------------ */
+				
+				        SELECT 
+				            Shop, Line, Station, MachineLabel, C_Good, dateTime, 
+				            Fault_duration, Fault_start, Fault_end, Machine, LinhaEstacao, DataHora
+				        FROM final_goi
+				
+				        UNION ALL
+				
+				        SELECT 
+				            Shop, Line, Station, MachineLabel, C_Good, dateTime, 
+				            Fault_duration, Fault_start, Fault_end, Machine, LinhaEstacao, DataHora
+				        FROM final_pubsub;
+				    ",
+				    ConsultaNativa = Value.NativeQuery(#"data-lake-manufacturing", SQL_Query),
+				    #"Linhas Filtradas" = Table.SelectRows(ConsultaNativa, each ([Fault_duration] <> null)),
+				    DuracaoMin = Table.AddColumn(#"Linhas Filtradas", "DuracaoMin", each [Fault_duration] / 60, type number),
+				    ClassicacaoParada = Table.AddColumn( 
+				    #"DuracaoMin",
+				    "ClassificaçãoParada",
+				    each if [DuracaoMin] = null then null
+				         else if [DuracaoMin] >= 10 then "Quebra"
+				         else if [DuracaoMin] <= 0 then null
+				         else "Microparada"
+				)
+				in
+				    ClassicacaoParada
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Exception
+

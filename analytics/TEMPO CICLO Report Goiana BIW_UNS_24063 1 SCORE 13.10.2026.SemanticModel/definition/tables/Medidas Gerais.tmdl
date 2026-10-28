@@ -1,0 +1,791 @@
+table 'Medidas Gerais'
+	lineageTag: 5ec6453a-9e1e-4e6b-9ebf-15db7c678161
+
+	measure 'Tempo Perdido Total (s)' =
+			
+			VAR Base =
+			    ADDCOLUMNS(
+			        'RT_EventosMáquina',
+			        "Perda",
+			            IF(
+			                'RT_EventosMáquina'[Cycle_Time] > 'RT_EventosMáquina'[TC_Referencia],
+			                'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia],
+			                BLANK()
+			            )
+			    )
+			RETURN
+			SUMX(Base, [Perda])
+		lineageTag: e1bd268b-dac3-4a2a-831b-29d853bea276
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Acumulada do Tempo Perdido' =
+			
+			VAR TabelaOrdenada =
+			    ADDCOLUMNS(
+			        ALLSELECTED(
+			            'RT_EventosMáquina'[Station],
+			            'RT_EventosMáquina'[Machine],
+			            'RT_EventosMáquina'[CSALD]
+			        ),
+			        "@TempoPerdido", [Tempo Perdido Total (s)]
+			    )
+			VAR SomaTotal = SUMX(TabelaOrdenada, [@TempoPerdido])
+			VAR SomaAcumulada =
+			    SUMX(
+			        FILTER(
+			            TabelaOrdenada,
+			            [@TempoPerdido] >=
+			                MAXX(
+			                    FILTER(TabelaOrdenada,
+			                        'RT_EventosMáquina'[Station] = EARLIER('RT_EventosMáquina'[Station]) &&
+			                        'RT_EventosMáquina'[Machine] = EARLIER('RT_EventosMáquina'[Machine])
+			                    ), [@TempoPerdido]
+			                )
+			        ),
+			        [@TempoPerdido]
+			    )
+			RETURN DIVIDE(SomaAcumulada, SomaTotal)
+		lineageTag: 79f2c6ec-436e-43f7-a610-2591a38d53a6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Índice de Desvio %' = ```
+			
+			DIVIDE(
+			    AVERAGE('RT_EventosMáquina'[Cycle_Time]) -
+			    AVERAGE('RT_EventosMáquina'[TC_Referencia]),
+			    AVERAGE('RT_EventosMáquina'[TC_Referencia])
+			)
+			
+			
+			```
+		formatString: 0.00
+		lineageTag: 50ee44ac-d60c-4f02-bfda-e9e9fe7df90a
+
+	measure '% de Ciclos KO Ajustada' = ```
+			
+			-- 1. Capturamos a estação atual do contexto do visual (Nível 1)
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao]) 
+			-- Nota: Certifique-se de usar a mesma coluna que está no seu visual (LinhaEstacao ou Station)
+			
+			VAR Numerador = 
+			    IF(
+			        ISINSCOPE('RT_EventosMáquina'[Machine]),
+			        -- NÍVEL 2: Se estivermos vendo o Robô específico
+			        [Ciclos KO Ajustado], 
+			        
+			        -- NÍVEL 1: Se estivermos vendo a Estação, filtra a máquina para bater com a "cabeça"
+			        CALCULATE(
+			            [Ciclos KO Ajustado], 
+			            'RT_EventosMáquina'[Machine] = EstacaoAtual
+			        )
+			    )
+			
+			VAR Denominador = 
+			    IF(
+			        ISINSCOPE('RT_EventosMáquina'[Machine]),
+			        -- NÍVEL 2: Ciclos totais do Robô específico
+			        COUNTROWS('RT_EventosMáquina'),
+			        
+			        -- NÍVEL 1: Ciclos totais da Estação (Cabeça) para a estação atual
+			        CALCULATE(
+			            COUNTROWS('RT_EventosMáquina'),
+			            'RT_EventosMáquina'[Machine] = EstacaoAtual
+			        )
+			    )
+			
+			RETURN
+			    DIVIDE(Numerador, Denominador) + 0
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: ddb943c6-c0c1-499f-a026-aec2c0a13b8d
+
+	measure 'Coeficiente de Variação (CV)' =
+			
+			COALESCE(
+			DIVIDE(
+			    STDEV.P('RT_EventosMáquina'[Cycle_Time]),
+			    AVERAGE('RT_EventosMáquina'[Cycle_Time])
+			),0)
+		lineageTag: 683c9767-766d-46fb-b6ec-645c36dd0374
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Linha Central (LC)' =
+			
+			AVERAGE('RT_EventosMáquina'[Cycle_Time])
+		lineageTag: 45e745aa-cd99-4718-abbc-25cda900cf9f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Desvio Padrão TC' =
+			
+			STDEV.P('RT_EventosMáquina'[Cycle_Time])
+		lineageTag: 68c9e2f6-6fed-4083-928a-5d56fdd29ef2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Limite Superior de Controle (LSC)' =
+			
+			[Linha Central (LC)] + (3 * [Desvio Padrão TC])
+		lineageTag: 41a95d33-7722-4feb-9a52-33cecbb55c19
+
+	measure 'Limite Inferior de Controle (LIC)' =
+			
+			[Linha Central (LC)] - (3 * [Desvio Padrão TC])
+		lineageTag: c3c4ac2e-e73d-4486-86ea-57a0bc1d14ee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Mediana TC' =
+			
+			MEDIAN('RT_EventosMáquina'[Cycle_Time])
+		lineageTag: 12a708ff-df66-4eb1-9623-ba45dbb07fe1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Meta Média' =
+			
+			AVERAGE('RT_EventosMáquina'[TC_Referencia])
+		lineageTag: e2329e92-f910-4ec0-ae90-744f204a8d29
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TC Médio por Turno' =
+			
+			CALCULATE(
+			    AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			    ALLEXCEPT('RT_EventosMáquina', 'RT_EventosMáquina'[Turno])
+			)
+		lineageTag: c8d42df7-e99e-4943-a869-fde74050b491
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Ciclos KO por Turno' =
+			
+			CALCULATE(
+			    [% de Ciclos KO Ajustada],
+			    ALLEXCEPT('RT_EventosMáquina', 'RT_EventosMáquina'[Turno])
+			)
+		lineageTag: 007b0a40-d80a-41a8-9d92-52640796cb7e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Índice de Desvio % por Turno' =
+			
+			CALCULATE(
+			    [Índice de Desvio %],
+			    ALLEXCEPT('RT_EventosMáquina', 'RT_EventosMáquina'[Turno])
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 59028154-a634-483e-b5cd-9ed2c9fe7ab0
+
+	measure 'TC Médio Diário' = ```
+			
+			CALCULATE(
+			    AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			    VALUES('RT_EventosMáquina'[Data])
+			)
+			
+			```
+		lineageTag: 3ea3a12f-13db-4842-9c4c-71a303e521b4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Tempo Perdido Médio Diário' =
+			
+			CALCULATE(
+			    [Tempo Perdido Total (s)],
+			    VALUES('RT_EventosMáquina'[Data])
+			)
+		formatString: 0.00
+		lineageTag: 1580e6e6-217e-40df-a7d2-1943c7ac50ae
+
+	measure TC_Moda =
+			
+			MINX(
+			    TOPN(
+			        1,
+			        ADDCOLUMNS(
+			            VALUES('RT_EventosMáquina'[Cycle_Time]),
+			            "Frequency", CALCULATE(COUNT('RT_EventosMáquina'[Cycle_Time]))
+			        ),
+			        [Frequency],
+			        0
+			    ),
+			    'RT_EventosMáquina'[Cycle_Time]
+			)
+		lineageTag: 8503602f-7804-4a00-b9bc-c0f9b1512efb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Perda Média por Ciclo (s)' =
+			
+			DIVIDE(
+			    [Tempo Perdido Total (s)],
+			    [Nº PeçasProduzidasMáquina]
+			)
+		lineageTag: 66242d86-49e6-4124-86d1-5e9564d47e55
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Media TC KO%' = ```
+			
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao])
+			
+			-- Busca a média ajustada (que já isola a 'cabeça' no nível 1)
+			VAR MedianaAtual = [Media Cycle Time KO Ajustada]
+			
+			-- Ajustamos a Referência para também olhar apenas para a 'cabeça' no nível 1
+			VAR Referencia = 
+			    IF(
+			        ISINSCOPE('RT_EventosMáquina'[Machine]),
+			        AVERAGE('RT_EventosMáquina'[TC_Referencia]),
+			        CALCULATE(
+			            AVERAGE('RT_EventosMáquina'[TC_Referencia]),
+			            'RT_EventosMáquina'[Machine] = EstacaoAtual
+			        )
+			    )
+			
+			VAR Resultado = DIVIDE(MedianaAtual, Referencia)
+			
+			RETURN
+			    IF(Resultado < 0, 0, Resultado)
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: ddef1f44-be1a-43e5-9419-273e48bdb0f1
+
+	measure 'Ciclos KO Ajustado' = ```
+			
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao])
+			
+			RETURN
+			IF(
+			    ISINSCOPE('RT_EventosMáquina'[Machine]), 
+			    -- NÍVEL 2: Se estiver visualizando o Robô, faz o cálculo padrão
+			    COUNTROWS(
+			        FILTER(
+			            'RT_EventosMáquina',
+			            'RT_EventosMáquina'[DeltaTC] > 0
+			        )
+			    ) + 0,
+			    
+			    -- NÍVEL 1: Se estiver no nível da Estação, filtra a tabela para bater com a "cabeça"
+			    CALCULATE(
+			        COUNTROWS(FILTER('RT_EventosMáquina', 'RT_EventosMáquina'[DeltaTC] > 0)),
+			        'RT_EventosMáquina'[Machine] = EstacaoAtual
+			    ) + 0
+			)
+			```
+		formatString: 0
+		lineageTag: dadd3546-a182-4c96-a6b8-23f6ad5e65b9
+
+	measure MédiaMicroparada/CarrosProduzidos* = SUM('No_faultUNS+Emille'[Fault_duration])/'Medidas TC Máquina'[Nº PeçasProduzidasMáquina]
+		formatString: 0
+		lineageTag: 208be0f7-476c-4226-bf4f-4ed92dd0c3c2
+
+	measure TC_Estacao =
+			
+			
+			VAR CycleTimeEstacao =
+			    CALCULATE(
+			        SUM('RT_EventosMáquina'[Cycle_Time]),
+			        'RT_EventosMáquina'[Machine] = "ST"    )
+			
+			RETURN
+			CycleTimeEstacao
+		lineageTag: 7e8ecc6a-32eb-4fde-940d-aa116650ee7e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Media Cycle Time KO Ajustada' = ```
+			
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao])
+			
+			RETURN
+			IF(
+			    ISINSCOPE('RT_EventosMáquina'[Machine]), 
+			    -- NÍVEL 2: Média padrão para o Robô específico
+			    CALCULATE(
+			        AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			        'RT_EventosMáquina'[DeltaTC] > 0
+			    ) + 0,
+			    
+			    -- NÍVEL 1: Média apenas dos registros onde Machine = Station (Cabeça)
+			    CALCULATE(
+			        AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			        'RT_EventosMáquina'[DeltaTC] > 0,
+			        'RT_EventosMáquina'[Machine] = EstacaoAtual
+			    ) + 0
+			)
+			```
+		formatString: 0
+		lineageTag: f27d0c77-c8bd-4185-9922-fe8c4185419d
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Ciclos KO por Modelo' = ```
+			
+			IF(
+			    ISINSCOPE('RT_EventosMáquina'[Machine]), 
+			    -- Se você descer ao nível de detalhe da máquina
+			    COUNTROWS(
+			        FILTER(
+			            'RT_EventosMáquina',
+			            'RT_EventosMáquina'[DeltaTC] > 0
+			        )
+			    ) + 0,
+			    
+			    -- No nível do Modelo (Gráfico ou Matriz)
+			    CALCULATE(
+			        COUNTROWS('RT_EventosMáquina'),
+			        FILTER(
+			            'RT_EventosMáquina',
+			            'RT_EventosMáquina'[DeltaTC] > 0 &&
+			            'RT_EventosMáquina'[Machine] = 'RT_EventosMáquina'[Station]
+			        )
+			    ) + 0
+			)
+			```
+		formatString: 0
+		lineageTag: 804319fe-d121-45cc-b5bb-4b23daad4481
+
+	measure 'QTD TOTAL Ajustada' = ```
+			
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao])
+			
+			RETURN
+			IF(
+			    ISINSCOPE('RT_EventosMáquina'[Machine]), 
+			    -- NÍVEL 2: Contagem total de ciclos para o Robô/Máquina individual
+			    COUNTROWS('RT_EventosMáquina') + 0,
+			    
+			    -- NÍVEL 1: Contagem apenas dos registros da máquina "cabeça" (Estação)
+			    CALCULATE(
+			        COUNTROWS('RT_EventosMáquina'),
+			        'RT_EventosMáquina'[Machine] = EstacaoAtual
+			    ) + 0
+			)
+			```
+		formatString: 0
+		lineageTag: fd0714cc-036d-4506-9ba6-744054d8b693
+
+	measure '% de Ciclos KO' = ```
+			
+			
+			 VAR Numerador =  COUNTROWS(
+			        FILTER(
+			            'RT_EventosMáquina',
+			            'RT_EventosMáquina'[DeltaTC] >0) )
+			VAR Denominador =
+			    COUNTROWS('RT_EventosMáquina')
+			RETURN
+			    DIVIDE( Numerador, Denominador )+0
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 684afab1-374a-47dd-bce8-13df65aea913
+
+	measure 'Ciclos Totais Média' = ```
+			
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao])
+			
+			RETURN
+			IF(
+			    ISINSCOPE('RT_EventosMáquina'[Machine]), 
+			    -- NÍVEL 2: Se estiver visualizando o Robô, calcula a média de todos os TC
+			    AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			    
+			    -- NÍVEL 1: Se estiver no nível da Estação, filtra a máquina (cabeça) e calcula a média
+			    CALCULATE(
+			        AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			        'RT_EventosMáquina'[Machine] = EstacaoAtual
+			    )
+			)
+			```
+		formatString: 0
+		lineageTag: 0f9bff93-e5bc-4bf0-aec6-480e13580da4
+
+	measure 'Ciclos Totais Mínimo' = ```
+			
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao])
+			
+			RETURN
+			IF(
+			    ISINSCOPE('RT_EventosMáquina'[Machine]), 
+			    -- NÍVEL 2: Se estiver visualizando o Robô, calcula a média de todos os TC
+			    MIN('RT_EventosMáquina'[Cycle_Time]),
+			    
+			    -- NÍVEL 1: Se estiver no nível da Estação, filtra a máquina (cabeça) e calcula a média
+			    CALCULATE(
+			        MIN('RT_EventosMáquina'[Cycle_Time]),
+			        'RT_EventosMáquina'[Machine] = EstacaoAtual
+			    )
+			)
+			```
+		formatString: 0
+		lineageTag: a08effdf-7ced-4d06-9967-f60bf3539feb
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Nivel de Prioridade' = ```
+			
+			-- 1. Capturamos a estação atual do contexto do visual (Nível 1)
+			VAR EstacaoAtual = SELECTEDVALUE('RT_EventosMáquina'[LinhaEstacao]) 
+			
+			VAR Numerador = 
+			    IF(
+			        ISINSCOPE('RT_EventosMáquina'[Machine]),
+			        -- NÍVEL 2: Se estivermos vendo o Robô específico
+			        [Ciclos KO Ajustado], 
+			        
+			        -- NÍVEL 1: Se estivermos vendo a Estação, filtra a máquina para bater com a "cabeça"
+			        CALCULATE(
+			            [Ciclos KO Ajustado], 
+			            'RT_EventosMáquina'[Machine] = EstacaoAtual
+			        )
+			    )
+			
+			VAR Denominador = 
+			    IF(
+			        ISINSCOPE('RT_EventosMáquina'[Machine]),
+			        -- NÍVEL 2: Ciclos totais do Robô específico
+			        COUNTROWS('RT_EventosMáquina'),
+			        
+			        -- NÍVEL 1: Ciclos totais da Estação (Cabeça) para a estação atual
+			        CALCULATE(
+			            COUNTROWS('RT_EventosMáquina'),
+			            'RT_EventosMáquina'[Machine] = EstacaoAtual
+			        )
+			    )
+			
+			-- 2. Calculamos a divisão (o percentual)
+			VAR PercKO = DIVIDE(Numerador, Denominador) + 0
+			
+			-- 3. Avaliamos a prioridade com base no percentual calculado acima
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        PercKO >= 0.75, "P0", -- De 75% para cima
+			        PercKO >= 0.50, "P1", -- De 50% até 74,999...%
+			        PercKO >= 0.25, "P2", -- De 25% até 49,999...%
+			        PercKO >= 0.05, "P3", 
+			        "OK" 
+			    )
+			```
+		lineageTag: 1f474a79-bed9-4a93-ab03-ab9b03f3e2c0
+
+	measure 'Beta Normal M' = ```
+			
+			        VAR _Dias =
+			            ADDCOLUMNS (
+			                CALCULATETABLE ( VALUES ( 'RT_EventosMáquina'[Data] ), 'RT_EventosMáquina'[inconsis] <> "TRUE" ),
+			                "@y", CALCULATE (
+			                          DIVIDE (
+			                              SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			                              COUNTROWS ( 'RT_EventosMáquina' )
+			                          ),
+			                          'RT_EventosMáquina'[inconsis] <> "TRUE"
+			                      )
+			            )
+			        VAR _xmin = MINX ( _Dias, INT ( 'RT_EventosMáquina'[Data] ) )
+			        VAR _T    = ADDCOLUMNS ( _Dias, "@x", INT ( 'RT_EventosMáquina'[Data] ) - _xmin )
+			        VAR _n    = COUNTROWS ( _T )
+			        VAR _Sx   = SUMX ( _T, [@x] )
+			        VAR _Sxx  = SUMX ( _T, [@x] * [@x] )
+			        VAR _Sy   = SUMX ( _T, [@y] )
+			        VAR _Sxy  = SUMX ( _T, [@x] * [@y] )
+			        VAR _den  = _n * _Sxx - _Sx * _Sx
+			        RETURN IF ( _n < 3 || _den = 0, BLANK (), DIVIDE ( _n * _Sxy - _Sx * _Sy, _den ) )
+			```
+		lineageTag: 5e6245b9-0360-4e81-b2d5-e9cfe4b31032
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Beta Pond M' = ```
+			
+			        VAR _Lambda = 0.2
+			        VAR _Dias =
+			            ADDCOLUMNS (
+			                CALCULATETABLE ( VALUES ( 'RT_EventosMáquina'[Data] ), 'RT_EventosMáquina'[inconsis] <> "TRUE" ),
+			                "@y", CALCULATE (
+			                          DIVIDE (
+			                              SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			                              COUNTROWS ( 'RT_EventosMáquina' )
+			                          ),
+			                          'RT_EventosMáquina'[inconsis] <> "TRUE"
+			                      )
+			            )
+			        VAR _xmax = MAXX ( _Dias, INT ( 'RT_EventosMáquina'[Data] ) )
+			        VAR _T =
+			            ADDCOLUMNS (
+			                _Dias,
+			                "@x", INT ( 'RT_EventosMáquina'[Data] ) - _xmax,
+			                "@w", EXP ( - _Lambda * ( _xmax - INT ( 'RT_EventosMáquina'[Data] ) ) )
+			            )
+			        VAR _n    = COUNTROWS ( _T )
+			        VAR _Sw   = SUMX ( _T, [@w] )
+			        VAR _Swx  = SUMX ( _T, [@w] * [@x] )
+			        VAR _Swxx = SUMX ( _T, [@w] * [@x] * [@x] )
+			        VAR _Swy  = SUMX ( _T, [@w] * [@y] )
+			        VAR _Swxy = SUMX ( _T, [@w] * [@x] * [@y] )
+			        VAR _den  = _Sw * _Swxx - _Swx * _Swx
+			        RETURN IF ( _n < 3 || _den = 0, BLANK (), DIVIDE ( _Sw * _Swxy - _Swx * _Swy, _den ) )
+			```
+		lineageTag: e7d75500-5bd5-42e9-b4b2-b679fe1f3d70
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Dia Score M' = ```
+			
+			        COALESCE (
+			            SELECTEDVALUE ( 'RT_EventosMáquina'[Data] ),
+			            CALCULATE ( MAX ( 'RT_EventosMáquina'[Data] ), ALLSELECTED ( 'RT_EventosMáquina'[Data] ) )
+			        )
+			```
+		formatString: General Date
+		lineageTag: 31762412-1e56-4ede-b774-ef968b112aca
+
+	measure 'Delta 1D M' = ```
+			
+			VAR _dia = [Dia Score M]
+			VAR _hoje = 
+			    COALESCE ( 
+			        CALCULATE ( 
+			            DIVIDE (
+			                SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			                COUNTROWS ( 'RT_EventosMáquina' )
+			            ),
+			            'RT_EventosMáquina'[Data] = _dia,
+			            'RT_EventosMáquina'[inconsis] <> "TRUE"
+			        ), 
+			        0 
+			    )
+			RETURN 
+			    _hoje
+			```
+		lineageTag: 3ed798fd-e209-48df-9a60-cdd063f52503
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Delta 5D M' = ```
+			
+			VAR _dia = [Dia Score M]
+			VAR _rec =
+			    COALESCE (
+			        CALCULATE (
+			            SUMX (
+			                VALUES ( 'RT_EventosMáquina'[Data] ),
+			                CALCULATE (
+			                    DIVIDE (
+			                        SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			                        COUNTROWS ( 'RT_EventosMáquina' )
+			                    )
+			                )
+			            ),
+			            KEEPFILTERS ( 'RT_EventosMáquina'[Data] > _dia - 5 && 'RT_EventosMáquina'[Data] <= _dia ),
+			            'RT_EventosMáquina'[inconsis] <> "TRUE"
+			        ), 0 )
+			RETURN 
+			    DIVIDE ( _rec, 5 )
+			```
+		lineageTag: 9dc426ec-e19d-40a5-88bb-429c197ce018
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Delta 7D1D M' =
+			
+			VAR _dia = [Dia Score M]
+			VAR _hoje =
+			    CALCULATE (
+			        DIVIDE (
+			            SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			            COUNTROWS ( 'RT_EventosMáquina' )
+			        ),
+			        'RT_EventosMáquina'[Data] = _dia,
+			        'RT_EventosMáquina'[inconsis] <> "TRUE"
+			    )
+			VAR _TabBase =
+			    CALCULATETABLE (
+			        ADDCOLUMNS (
+			            VALUES ( 'RT_EventosMáquina'[Data] ),
+			            "@ppp",
+			                CALCULATE (
+			                    DIVIDE (
+			                        SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			                        COUNTROWS ( 'RT_EventosMáquina' )
+			                    )
+			                )
+			        ),
+			        'RT_EventosMáquina'[Data] >= _dia - 7 && 'RT_EventosMáquina'[Data] <= _dia - 1,
+			        'RT_EventosMáquina'[inconsis] <> "TRUE"
+			    )
+			VAR _DiasBase = COUNTROWS ( _TabBase )
+			VAR _Base     = AVERAGEX ( _TabBase, [@ppp] )
+			RETURN
+			    IF ( ISBLANK ( _hoje ) || _DiasBase < 2, BLANK (), _hoje - _Base )
+		lineageTag: db2052ff-6aa8-4db8-8c1f-258192f69177
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Delta 21D7D M' =
+			
+			VAR _dia = [Dia Score M]
+			VAR _TabRec =
+			    CALCULATETABLE (
+			        ADDCOLUMNS (
+			            VALUES ( 'RT_EventosMáquina'[Data] ),
+			            "@ppp",
+			                CALCULATE (
+			                    DIVIDE (
+			                        SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			                        COUNTROWS ( 'RT_EventosMáquina' )
+			                    )
+			                )
+			        ),
+			        'RT_EventosMáquina'[Data] >= _dia - 6 && 'RT_EventosMáquina'[Data] <= _dia,
+			        'RT_EventosMáquina'[inconsis] <> "TRUE"
+			    )
+			VAR _TabBase =
+			    CALCULATETABLE (
+			        ADDCOLUMNS (
+			            VALUES ( 'RT_EventosMáquina'[Data] ),
+			            "@ppp",
+			                CALCULATE (
+			                    DIVIDE (
+			                        SUMX ( 'RT_EventosMáquina', MAX ( 'RT_EventosMáquina'[Cycle_Time] - 'RT_EventosMáquina'[TC_Referencia], 0 ) ),
+			                        COUNTROWS ( 'RT_EventosMáquina' )
+			                    )
+			                )
+			        ),
+			        'RT_EventosMáquina'[Data] >= _dia - 27 && 'RT_EventosMáquina'[Data] <= _dia - 7,
+			        'RT_EventosMáquina'[inconsis] <> "TRUE"
+			    )
+			VAR _DiasRec  = COUNTROWS ( _TabRec )
+			VAR _DiasBase = COUNTROWS ( _TabBase )
+			VAR _Rec      = AVERAGEX ( _TabRec, [@ppp] )
+			VAR _Base     = AVERAGEX ( _TabBase, [@ppp] )
+			RETURN
+			    IF ( _DiasRec < 2 || _DiasBase < 2, BLANK (), _Rec - _Base )
+		lineageTag: d4102263-f7f4-4afb-8ee3-ada2792abea8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Score TC' =
+			
+			-- ==============================================================================
+			-- 1. LIMITES DE SATURACAO (tetos fixos; calibrar pelo P95 de cada criterio no Python)
+			-- ==============================================================================
+			VAR _Lim_ExcKO  = 60.0   -- Excesso medio dos ciclos KO sobre TC_Ref (%); calibrar ~P95
+			VAR _Lim_QtdKO  = 100.0  -- Proporcao de ciclos KO (%); ja e limitada a 100, sem saturacao artificial
+			VAR _Lim_Beta   = 0.05   -- Inclinacao OLS da perda/peca (s/peca por dia)
+			VAR _Lim_BetaW  = 0.05   -- Inclinacao WLS, lambda = 0.08 (s/peca por dia)
+			VAR _Lim_D7     = 30.0   -- Variacao %: ultimo dia vs media 7D (janela curta, mais ruidosa)
+			VAR _Lim_D21    = 20.0   -- Variacao %: ultimos 7D vs media 21D
+			VAR _K_Shrink   = 30     -- Encolhimento: qtd_ko / (qtd_ko + K)
+			
+			-- Escala das medidas percentuais:
+			--   100 se a medida retorna fracao (0,12 exibido como 12%)
+			--   1   se a medida ja retorna em pontos percentuais (12)
+			VAR _EscalaPct  = 100
+			
+			-- ==============================================================================
+			-- 2. CARGA DOS VALORES (medidas da tabela Medidas Gerais)
+			-- ==============================================================================
+			VAR _QtdKOAbs   = COALESCE([Ciclos KO Ajustado], 0)
+			
+			-- Media TC KO% e a RAZAO Media KO / TC_Ref (148,6% = 74/50).
+			-- Subtrai 1 para obter o EXCESSO (48,6%); aplica shrinkage por volume de KO
+			VAR _RazaoKO    = [Media TC KO%]
+			VAR _ExcKORaw   = IF(ISBLANK(_RazaoKO), 0, (_RazaoKO - 1) * _EscalaPct)
+			VAR _FatorShr   = DIVIDE(_QtdKOAbs, _QtdKOAbs + _K_Shrink, 0)
+			VAR _ValExcKO   = _ExcKORaw * _FatorShr
+			
+			VAR _ValQtdKO   = COALESCE([% de Ciclos KO Ajustada], 0) * _EscalaPct
+			VAR _ValBeta    = COALESCE([Beta Normal M], 0)
+			VAR _ValBetaW   = COALESCE([Beta Pond M], 0)
+			VAR _ValD7      = COALESCE([Delta 7D1D M], 0) * _EscalaPct
+			VAR _ValD21     = COALESCE([Delta 21D7D M], 0) * _EscalaPct
+			
+			-- ==============================================================================
+			-- 3. NORMALIZACAO POR TETO FIXO (clip em [0, Lim] / Lim)
+			--    Negativo = melhora/estabilidade -> 0 (perda/peca = 0 e o ideal)
+			-- ==============================================================================
+			VAR _NExcKO = DIVIDE(MIN(MAX(_ValExcKO, 0), _Lim_ExcKO), _Lim_ExcKO, 0)
+			VAR _NQtdKO = DIVIDE(MIN(MAX(_ValQtdKO, 0), _Lim_QtdKO), _Lim_QtdKO, 0)
+			VAR _NBeta  = DIVIDE(MIN(MAX(_ValBeta,  0), _Lim_Beta),  _Lim_Beta,  0)
+			VAR _NBetaW = DIVIDE(MIN(MAX(_ValBetaW, 0), _Lim_BetaW), _Lim_BetaW, 0)
+			-- Materialidade: deltas % comparam a estacao com a propria base.
+			-- Base perto de zero infla o % (0,01 -> 0,02 s/peca = +100%).
+			-- O fator so deixa o delta pesar quando a perda absoluta e relevante.
+			VAR _Lim_Mat    = 0.5    -- perda/peca (s) a partir da qual o delta conta inteiro; calibrar ~P75
+			VAR _PerdaPeca  = COALESCE([Perda Média por Ciclo (s)], 0)
+			VAR _Mat        = DIVIDE(MIN(MAX(_PerdaPeca, 0), _Lim_Mat), _Lim_Mat, 0)
+			
+			VAR _ND7    = DIVIDE(MIN(MAX(_ValD7,    0), _Lim_D7),    _Lim_D7,    0) * _Mat
+			VAR _ND21   = DIVIDE(MIN(MAX(_ValD21,   0), _Lim_D21),   _Lim_D21,   0) * _Mat
+			
+			-- Nivel da perda/peca (o proprio indicador do quadro: 0 = ideal, > 0 = critico)
+			-- Equivale a %KO x excesso KO: premia quem e alto nos DOIS criterios,
+			-- o que a soma aditiva do nivel 1 nao captura.
+			VAR _Lim_Perda  = 20.0   -- s/peca; calibrar ~P90
+			VAR _NPerda = DIVIDE(MIN(MAX(_PerdaPeca, 0), _Lim_Perda), _Lim_Perda, 0)
+			
+			-- ==============================================================================
+			-- 4. PESOS AHP
+			-- ==============================================================================
+			-- Nivel 1 (somam 1)
+			VAR _W1_ExcKO = 0.545   -- Media TC KO
+			VAR _W1_QtdKO = 0.273   -- Quantidade KO %
+			VAR _W1_Perda = 0.182   -- Perda por TC
+			
+			-- Nivel 2, dentro de Perda por TC (somam 1): metade nivel, metade tendencia
+			VAR _W2_Perda  = 0.50   -- Nivel da perda/peca (cronico)
+			VAR _W2_Beta   = 0.10   -- Tendencia estrutural (OLS)
+			VAR _W2_BetaW  = 0.15   -- Tendencia recente (WLS)
+			VAR _W2_D7     = 0.10   -- Inflexao curta
+			VAR _W2_D21    = 0.075  -- Inflexao media
+			VAR _W2_IntExp = 0.05   -- Interacao Explosao
+			VAR _W2_IntEst = 0.025  -- Interacao Estrutural
+			
+			-- Interacoes (produto de normalizados, fica em [0,1])
+			VAR _IntExplosao   = _NBetaW * _ND7    -- acelerando agora + salto recente
+			VAR _IntEstrutural = _NBeta  * _ND21   -- tendencia longa + degrau na semana
+			
+			VAR _SubPerda =
+			      _NPerda        * _W2_Perda
+			    + _NBeta         * _W2_Beta
+			    + _NBetaW        * _W2_BetaW
+			    + _ND7           * _W2_D7
+			    + _ND21          * _W2_D21
+			    + _IntExplosao   * _W2_IntExp
+			    + _IntEstrutural * _W2_IntEst
+			
+			-- ==============================================================================
+			-- 5. SCORE FINAL (0-100 garantido)
+			-- ==============================================================================
+			VAR _ScoreCalc =
+			      _NExcKO   * _W1_ExcKO
+			    + _NQtdKO   * _W1_QtdKO
+			    + _SubPerda * _W1_Perda
+			
+			RETURN
+			    ROUND(_ScoreCalc * 100, 1)
+		lineageTag: 7f3ce538-eeed-4b51-8052-e3c158689c42
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Medidas Gerais' = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"Coluna 1"})
+				in
+				    #"Colunas Removidas"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

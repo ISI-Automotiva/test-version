@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "TEMPO CICLO Report Goiana BIW_UNS_24063 1 SCORE 13.10.2026"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "0562e19b-42ee-4d4b-8b49-c052247871a4"
+  }
+}

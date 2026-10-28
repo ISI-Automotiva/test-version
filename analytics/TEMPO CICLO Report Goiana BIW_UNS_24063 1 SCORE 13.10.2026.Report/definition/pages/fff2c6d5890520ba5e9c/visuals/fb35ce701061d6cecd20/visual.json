@@ -1,0 +1,131 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "fb35ce701061d6cecd20",
+  "position": {
+    "x": 268,
+    "y": 479.99999999999994,
+    "z": 50005,
+    "height": 320,
+    "width": 1232,
+    "tabOrder": 50005
+  },
+  "visual": {
+    "visualType": "BoxandWhiskerByMAQ1823AD39DT234AB532063E128AX",
+    "query": {
+      "queryState": {
+        "category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RT_EventosMáquina"
+                    }
+                  },
+                  "Property": "dateTime"
+                }
+              },
+              "queryRef": "RT_EventosMáquina.dateTime",
+              "nativeQueryRef": "Contagem de dateTime"
+            }
+          ]
+        },
+        "measure": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RT_EventosMáquina"
+                        }
+                      },
+                      "Property": "Cycle_Time"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(RT_EventosMáquina.Cycle_Time)",
+              "nativeQueryRef": "Cycle_Time"
+            }
+          ]
+        },
+        "categoryGroup": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RT_EventosMáquina"
+                    }
+                  },
+                  "Property": "LinhaEstacao"
+                }
+              },
+              "queryRef": "RT_EventosMáquina.LinhaEstacao",
+              "nativeQueryRef": "LinhaEstacao",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "7b9f2f9c7734622c6844",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RT_EventosMáquina"
+              }
+            },
+            "Property": "dateTime"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "fe9d739a1e654f5fbb10",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "RT_EventosMáquina"
+                  }
+                },
+                "Property": "Cycle_Time"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "cb8c598d3fce9105e926",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RT_EventosMáquina"
+              }
+            },
+            "Property": "LinhaEstacao"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

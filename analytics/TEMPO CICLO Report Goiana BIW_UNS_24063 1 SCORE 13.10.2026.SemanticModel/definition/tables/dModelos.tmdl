@@ -1,0 +1,88 @@
+table dModelos
+	lineageTag: db1d8e43-9c13-4463-9ee9-394726623336
+
+	column Model_Product
+		dataType: string
+		lineageTag: f48875e6-f735-48e1-8b9c-7d947c30f864
+		summarizeBy: none
+		sourceColumn: Model_Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Model
+		dataType: string
+		lineageTag: b34a9a60-86c7-4be1-81cf-10502024db57
+		summarizeBy: none
+		sourceColumn: Model
+
+		annotation SummarizationSetBy = Automatic
+
+	column Style_Model
+		dataType: string
+		lineageTag: 8e43e9d2-011f-4143-8b55-864f3e6e3177
+		summarizeBy: none
+		sourceColumn: Style_Model
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dModelos-99351cfe-2afc-47ba-9baf-3480334c6ef7 = m
+		mode: import
+		source = ```
+				let
+				    // Criação da lista de registros (cada registro é uma linha da tabela)
+				    Modelos = {
+				    [Model_Product = 1.0,   Style_Model = "Renegade"],
+				    [Model_Product = 3.0,   Style_Model = "Toro"],
+				    [Model_Product = 5.0,   Style_Model = "Compass"],
+				    [Model_Product = 7.0,   Style_Model = "Commander"],
+				    [Model_Product = 11.0,  Style_Model = "Rampage TC"],
+				    [Model_Product = 201.0, Style_Model = "Toro MCA TC"],
+				    [Model_Product = 202.0, Style_Model = "Toro MCA TA"],
+				    [Model_Product = 203.0, Style_Model = "Toro TC"],
+				    [Model_Product = 204.0, Style_Model = "Toro TA"],
+				    [Model_Product = 213.0, Style_Model = "Toro MCA"],
+				    [Model_Product = 501.0, Style_Model = "Compass MCA TC"],
+				    [Model_Product = 502.0, Style_Model = "Compass MCA TA"],
+				    [Model_Product = 503.0, Style_Model = "Compass TC"],
+				    [Model_Product = 504.0, Style_Model = "Compass TA"],
+				    [Model_Product = 601.0, Style_Model = "Renegade MCA TC"],
+				    [Model_Product = 602.0, Style_Model = "Renegade MCA TA"],
+				    [Model_Product = 603.0, Style_Model = "Renegade TC"],
+				    [Model_Product = 604.0, Style_Model = "Renegade TA"],
+				    [Model_Product = 591.0, Style_Model = "Commander TC"],
+				    [Model_Product = 592.0, Style_Model = "Commander TA"],
+				    [Model_Product = 901.0, Style_Model = "Rampage"],
+				
+				    // --- Novos adicionados ---
+				    [Model_Product = 291.0, Style_Model = "Rampage"],
+				    [Model_Product = 226.0, Style_Model = "Toro"],
+				    [Model_Product = 521.0, Style_Model = "Renegade"],
+				    [Model_Product = 551.0, Style_Model = "Compass"],
+				    [Model_Product = 598.0, Style_Model = "Commander"],
+				
+				    // --- Códigos em produção que faltavam no de-para ---
+				    [Model_Product = 214.0, Style_Model = "Toro TC"],
+				    [Model_Product = 505.0, Style_Model = "Compass TC"],
+				    [Model_Product = 506.0, Style_Model = "Compass TA"],
+				    [Model_Product = 593.0, Style_Model = "Commander TC"],
+				    [Model_Product = 594.0, Style_Model = "Commander TA"],
+				    [Model_Product = 607.0, Style_Model = "Renegade TC"],
+				    [Model_Product = 608.0, Style_Model = "Renegade TA"]
+				},
+				
+				    // Converte a lista em uma tabela
+				    TabelaModelos = Table.FromRecords(Modelos),
+				    Personalizar1 = Table.AddColumn( 
+				    #"TabelaModelos", 
+				    "Model", 
+				    each Text.BeforeDelimiter([Style_Model], " "), 
+				    type text
+				)
+				in
+				    Personalizar1
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

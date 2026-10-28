@@ -1,0 +1,62 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "cd18308507904588c69b",
+  "displayName": "5. ANÁLISE DE PERDA DE CAPACIDADE OCULTA",
+  "displayOption": "FitToPage",
+  "height": 800,
+  "width": 1500,
+  "pageBinding": {
+    "name": "74c921e70c861004bc1e",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  },
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Gemini_Generated_Image_y5t2kdy5t2kdy5t2.png'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "Gemini_Generated_Image_y5t2kdy43685420747935544.png"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fit'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode",
+  "visualInteractions": [
+    {
+      "source": "241f77f0c8e56a8b4590",
+      "target": "f31c432778e13de78ee6",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f31c432778e13de78ee6",
+      "target": "241f77f0c8e56a8b4590",
+      "type": "DataFilter"
+    }
+  ]
+}

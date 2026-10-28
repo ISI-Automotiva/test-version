@@ -1,0 +1,115 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "ddb68a32d2371aac7032",
+  "position": {
+    "x": 1065.6892263385259,
+    "y": 439.68058646419689,
+    "z": 40000,
+    "height": 320.37701269799715,
+    "width": 404.827857049352,
+    "tabOrder": 39000
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "Machine"
+                }
+              },
+              "queryRef": "UNS (2).Machine",
+              "nativeQueryRef": "Machine",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Duplicados"
+                        }
+                      },
+                      "Property": "repeticoes"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(UNS (2).repeticoes)",
+              "nativeQueryRef": "repeticoes"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "Duplicados"
+                      }
+                    },
+                    "Property": "repeticoes"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 266.78175109613579,
+        "y": 78295.922222121008
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1664.8165204164541,
+            "y": 79943.482963675051
+          },
+          "nodeIndex": "Medidas Gerais Linha",
+          "nodeLineageTag": "67587f46-d220-491a-a1db-900ab5c0a09c",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 2130.1161304063867,
+            "y": 79865.485898377621
+          },
+          "nodeIndex": "Medidas TC Máquina",
+          "nodeLineageTag": "65523a47-ce75-4ca3-8eaf-f2d6d92cdb3a",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 2110.02737257539,
+            "y": 79673.184473500776
+          },
+          "nodeIndex": "DataUpdate",
+          "nodeLineageTag": "d610d711-05e6-407b-b59f-e88690cda0fe",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 575.82338181385694,
+            "y": 79856.234019455165
+          },
+          "nodeIndex": "dSequenciasHistograma",
+          "nodeLineageTag": "4013c492-c5d6-44a5-88cc-ee48df8f796d",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 813.78994136169888,
+            "y": 80065.190057936663
+          },
+          "nodeIndex": "RT_EventosMáquina",
+          "nodeLineageTag": "04d268e2-20d6-4734-b045-23f5ea3c382a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 834.24951482410461,
+            "y": 79285.450867280655
+          },
+          "nodeIndex": "Medidas Gerais",
+          "nodeLineageTag": "5ec6453a-9e1e-4e6b-9ebf-15db7c678161",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 436.04787007013965,
+            "y": 79322.741855576547
+          },
+          "nodeIndex": "Reports",
+          "nodeLineageTag": "df10c3bc-e477-41b5-a251-5d1f0bf3b007",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 1235.6482504242967,
+            "y": 79390.566950234177
+          },
+          "nodeIndex": "dModelos",
+          "nodeLineageTag": "db1d8e43-9c13-4463-9ee9-394726623336",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 69.967624818505328,
+            "y": 80652.890527360738
+          },
+          "nodeIndex": "dData",
+          "nodeLineageTag": "70420bc0-4dc3-4e70-a493-d37bf43ae04e",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 1808.536962035384,
+            "y": 79365.28786709471
+          },
+          "nodeIndex": "UTE_Line",
+          "nodeLineageTag": "92934767-2b6f-4fe3-b57c-6d4fc1e6a475",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 134.94181345632842,
+            "y": 79504.3760317273
+          },
+          "nodeIndex": "No_faultUNS+Emille",
+          "nodeLineageTag": "e20dab47-65a9-494f-9f0e-17f1c92bc029",
+          "size": {
+            "height": 433.37839401916426,
+            "width": 226.59326030441889
+          },
+          "zIndex": 12
+        }
+      ],
+      "name": "Todas as tabelas",
+      "zoomValue": 44.230911415480691,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas as tabelas",
+  "defaultDiagram": "Todas as tabelas"
+}

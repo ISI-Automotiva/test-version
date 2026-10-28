@@ -1,0 +1,112 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "b84777a307e8442c947f",
+  "position": {
+    "x": 278.68778635947109,
+    "y": 290.75219269537894,
+    "z": 2000,
+    "height": 416.2220185888205,
+    "width": 988.07487891085214,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "scatterChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RT_EventosMáquina"
+                    }
+                  },
+                  "Property": "Machine"
+                }
+              },
+              "queryRef": "RT_EventosMáquina.Machine",
+              "nativeQueryRef": "Machine",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RT_EventosMáquina"
+                    }
+                  },
+                  "Property": "Machine"
+                }
+              },
+              "queryRef": "RT_EventosMáquina.Machine",
+              "nativeQueryRef": "Machine"
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas Gerais"
+                    }
+                  },
+                  "Property": "Tempo Perdido Total (s)"
+                }
+              },
+              "queryRef": "Medidas Gerais.Tempo Perdido Total (s)",
+              "nativeQueryRef": "Tempo Perdido Total (s)"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas Gerais"
+                    }
+                  },
+                  "Property": "Índice de Desvio %"
+                }
+              },
+              "queryRef": "Medidas Gerais.Índice de Desvio %",
+              "nativeQueryRef": "Índice de Desvio %",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas Gerais"
+                    }
+                  },
+                  "Property": "Coeficiente de Variação (CV)"
+                }
+              },
+              "queryRef": "Medidas Gerais.Coeficiente de Variação (CV)",
+              "nativeQueryRef": "Coeficiente de Variação (CV)"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "80557344863c2a4eb3e5",
+  "displayName": "VALORES DUPLICADOS",
+  "displayOption": "FitToPage",
+  "height": 800,
+  "width": 1500,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "e1adbd00c0b6d567bcd2",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RT_EventosMáquina"
+              }
+            },
+            "Property": "ClassificaçãoParada"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "filterSortOrder": "Custom"
+  },
+  "pageBinding": {
+    "name": "22d86f7650c061a4d901",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  },
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Gemini_Generated_Image_y5t2kdy5t2kdy5t2.png'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "Gemini_Generated_Image_y5t2kdy43685420747935544.png"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fit'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode",
+  "visualInteractions": [
+    {
+      "source": "c9223eaa2b729495c2b5",
+      "target": "ddb68a32d2371aac7032",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ddb68a32d2371aac7032",
+      "target": "c9223eaa2b729495c2b5",
+      "type": "DataFilter"
+    }
+  ]
+}

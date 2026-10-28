@@ -1,0 +1,51 @@
+table 'Medidas Gerais Linha'
+	lineageTag: 67587f46-d220-491a-a1db-900ab5c0a09c
+
+	measure 'Máximo Velocidade' =
+			CALCULATE(DIVIDE(3600,54,"Selecione um filtro válido"))
+			//MIN('RT_EventosLinha'[UltEnvio])
+		lineageTag: af7f22a3-7064-46ef-bc75-0deca8ee6525
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	measure 'VelocMédia/Hora (TC)' = (3600/(CALCULATE(AVERAGE('RT_EventosLinha'[UltEnvio]),FILTER('RT_EventosLinha','RT_EventosLinha'[DeltaTC]>"0"))))
+		lineageTag: 4d3731ea-6574-45f1-832f-48b4e49af3da
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'VelocMédia/Hora (TC+Microparada)' = (3600/(CALCULATE(AVERAGE('RT_EventosEstação'[UltEnvio]),FILTER('RT_EventosEstação','RT_EventosEstação'[DeltaTC]>0))+'Medidas Gerais Estação'[MédiaMicroparada/CarrosProduzidos*Estação]))
+		lineageTag: 3fae40f9-c5ab-4f85-8fa2-8f5b5997d184
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Menor Velocidade' = CALCULATE(DIVIDE(3600,MAX('RT_EventosLinha'[UltEnvio]),"Selecione um filtro válido"))
+		lineageTag: 8eff678d-a073-404a-ad0a-deb1aa175580
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column 'Coluna 1'
+		dataType: string
+		isHidden
+		lineageTag: 69d1ae54-b7fb-4c2f-925d-274cc8ef26d6
+		summarizeBy: none
+		sourceColumn: Coluna 1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	partition 'Medidas Gerais Linha-5cd6e01d-5c2a-44c6-8500-45a4dba03893' = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

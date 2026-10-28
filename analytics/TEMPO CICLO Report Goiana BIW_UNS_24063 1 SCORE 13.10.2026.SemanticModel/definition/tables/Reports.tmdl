@@ -1,0 +1,30 @@
+table Reports
+	lineageTag: df10c3bc-e477-41b5-a251-5d1f0bf3b007
+
+	column Pagina
+		lineageTag: c828b938-fcc6-477b-ab86-32a24c00e130
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Pagina]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Reports = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Pagina", STRING,
+				    {
+				        {"0. DATA UPDATE"},
+				        {"1. ANALYTICS GERAL"},
+				        {"2. DESVIOS E EFICIÊNCIA"},
+					    {"2.1 DESVIOS E EFICIÊNCIA - Versão impressão"},
+				        {"3. PERDAS MODELO/TURNO"},
+				        {"4. ESTABILIDADE E RISCO DE VARIAÇÃO"},
+				        {"5. ANÁLISE DE PERDA DE CAPACIDADE OCULTA"},
+				        {"6. QUANTIFICAÇÃO DE PERDAS"}
+				    }
+				)
+
+	annotation PBI_Id = b9345d1ac7c5476db8a037b490d943bf
+

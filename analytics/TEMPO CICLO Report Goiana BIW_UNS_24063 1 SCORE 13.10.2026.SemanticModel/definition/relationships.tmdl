@@ -1,0 +1,57 @@
+relationship 66fb773b-ea0b-4f65-b62e-4d40fc15446b
+	joinOnDateBehavior: datePartOnly
+	fromColumn: DataUpdate.'Last Refresh Date Time'
+	toColumn: LocalDateTable_802ffc48-335d-4537-a8e6-951ac10fc612.Date
+
+relationship AutoDetected_889fa28b-2d17-4c32-884b-ef7d4dd096b9
+	fromColumn: RT_EventosMáquina.ClassesHistograma
+	toColumn: dSequenciasHistograma.ClassesHistograma
+
+relationship 323a35dc-f050-4f1c-b75d-149f71d5abb2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dData.Data
+	toColumn: LocalDateTable_8bd70fe3-8de2-4f37-9a6c-bfb2b7c82b02.Date
+
+relationship 09903f31-c5e6-400b-b06b-56e69f382909
+	fromColumn: RT_EventosMáquina.Data
+	toColumn: dData.Data
+
+relationship 20b69e06-9f70-a75d-8b6d-920489112182
+	fromColumn: RT_EventosMáquina.CSALD
+	toColumn: dModelos.Model_Product
+
+relationship 03ea8594-e4d1-4b5f-9d10-d5b64471ba90
+	joinOnDateBehavior: datePartOnly
+	fromColumn: RT_EventosMáquina.dateTime
+	toColumn: LocalDateTable_b0418227-6293-4aa0-8df4-6f97ec960567.Date
+
+relationship 80247b26-5109-4172-afb3-4a46ed30b45f
+	joinOnDateBehavior: datePartOnly
+	fromColumn: RT_EventosMáquina.DataHora
+	toColumn: LocalDateTable_a07ff67b-9c17-40c2-9a6e-772fa0cc9e72.Date
+
+relationship 7d232eb5-a06b-45cb-b1e7-2762e3dd7604
+	joinOnDateBehavior: datePartOnly
+	fromColumn: No_faultUNS+Emille.dateTime
+	toColumn: LocalDateTable_d3bffdb9-f28c-4482-9612-eb1388b1e159.Date
+
+relationship 9e6eeab0-6a5c-41b0-b15b-adfe6de779c1
+	joinOnDateBehavior: datePartOnly
+	fromColumn: No_faultUNS+Emille.Fault_start
+	toColumn: LocalDateTable_30f1b5e2-5801-4572-b7db-880193a29d3f.Date
+
+relationship 43a3d3c9-9ed9-424c-96b9-9e83fa7d001a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: No_faultUNS+Emille.Fault_end
+	toColumn: LocalDateTable_c32bfab3-52a5-4690-92bc-cbba153a8bef.Date
+
+relationship a908183c-afec-36b4-110e-cab09a19fb86
+	fromColumn: No_faultUNS+Emille.DataHora
+	toColumn: dData.Data
+
+relationship 1fabb179-cb68-701b-ae66-b811043560a9
+	crossFilteringBehavior: bothDirections
+	toCardinality: many
+	fromColumn: RT_EventosMáquina.Machine
+	toColumn: No_faultUNS+Emille.Machine
+

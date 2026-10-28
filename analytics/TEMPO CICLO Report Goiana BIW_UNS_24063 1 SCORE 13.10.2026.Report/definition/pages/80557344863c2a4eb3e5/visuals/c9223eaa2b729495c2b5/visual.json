@@ -1,0 +1,92 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "c9223eaa2b729495c2b5",
+  "position": {
+    "x": 276.14085613300171,
+    "y": 113.94161539468517,
+    "z": 38000,
+    "height": 294.90771043330278,
+    "width": 1207.7811231836629,
+    "tabOrder": 37000
+  },
+  "visual": {
+    "visualType": "columnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "dateTime"
+                }
+              },
+              "queryRef": "UNS (2).dateTime",
+              "nativeQueryRef": "dateTime",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "dateTime"
+                }
+              },
+              "queryRef": "UNS (2).dateTime.Variation.Hierarquia de datas.Ano",
+              "nativeQueryRef": "dateTime Ano",
+              "active": false
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Duplicados"
+                        }
+                      },
+                      "Property": "repeticoes"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(UNS (2).repeticoes)",
+              "nativeQueryRef": "repeticoes"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

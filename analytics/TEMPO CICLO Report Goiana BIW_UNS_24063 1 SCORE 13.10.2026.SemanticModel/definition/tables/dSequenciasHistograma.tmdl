@@ -1,0 +1,56 @@
+table dSequenciasHistograma
+	lineageTag: 4013c492-c5d6-44a5-88cc-ee48df8f796d
+
+	column SequenciaDeltas
+		dataType: string
+		lineageTag: 1b37e01f-46c5-4956-aa9d-6246b3d8d7c5
+		summarizeBy: none
+		sourceColumn: SequenciaDeltas
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClassesHistograma
+		dataType: string
+		lineageTag: 6955c3da-324f-4fbb-9c53-277d429cf102
+		summarizeBy: none
+		sourceColumn: ClassesHistograma
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClassificaçãoCiclos
+		dataType: string
+		lineageTag: 9b322b51-c2b4-4380-ae3b-1b7cf3eb28ec
+		summarizeBy: none
+		sourceColumn: ClassificaçãoCiclos
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dSequenciasHistograma-38277274-864a-4e33-92f3-c2e537fbcc93 = m
+		mode: import
+		source = ```
+				let
+				    Fonte = Table.FromRecords({
+				        [SequenciaDeltas=1, ClassesHistograma="TC<-4"],
+				        [SequenciaDeltas=2, ClassesHistograma="TC=-3"],
+				        [SequenciaDeltas=3, ClassesHistograma="TC=-2"],
+				        [SequenciaDeltas=4, ClassesHistograma="TC=-1"],
+				        [SequenciaDeltas=5, ClassesHistograma="TC=0"],
+				        [SequenciaDeltas=6, ClassesHistograma="TC=+1"],
+				        [SequenciaDeltas=7, ClassesHistograma="TC=+2"],
+				        [SequenciaDeltas=8, ClassesHistograma="TC=+3"],
+				        [SequenciaDeltas=9, ClassesHistograma="TC=+4"],
+				        [SequenciaDeltas=10, ClassesHistograma="TC>+5"]
+				    }),
+				    AdicionarClassificacao = Table.AddColumn( 
+				        Fonte,
+				        "ClassificaçãoCiclos",
+				        each if [SequenciaDeltas] <= 5 then "TC OK" else "OVER TC"
+				    )
+				in
+				    AdicionarClassificacao
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

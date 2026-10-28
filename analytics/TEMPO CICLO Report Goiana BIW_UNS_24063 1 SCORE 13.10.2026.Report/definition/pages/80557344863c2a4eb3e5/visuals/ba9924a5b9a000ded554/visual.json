@@ -1,0 +1,233 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "ba9924a5b9a000ded554",
+  "position": {
+    "x": 281.50281450451632,
+    "y": 435.65911768556094,
+    "z": 39000,
+    "height": 349.8677837413274,
+    "width": 772.12200549810188,
+    "tabOrder": 38000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "dateTime"
+                }
+              },
+              "queryRef": "UNS (2).dateTime",
+              "nativeQueryRef": "dateTime"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "Machine"
+                }
+              },
+              "queryRef": "UNS (2).Machine",
+              "nativeQueryRef": "Machine"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "CSALD"
+                }
+              },
+              "queryRef": "UNS (2).CSALD",
+              "nativeQueryRef": "CSALD"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "Nseq"
+                }
+              },
+              "queryRef": "UNS (2).Nseq",
+              "nativeQueryRef": "Nseq"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Duplicados"
+                        }
+                      },
+                      "Property": "Cycle_Time"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(UNS (2).Cycle_Time)",
+              "nativeQueryRef": "Cycle_Time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Duplicados"
+                    }
+                  },
+                  "Property": "repeticoes"
+                }
+              },
+              "queryRef": "Sum(UNS (2).repeticoes)",
+              "nativeQueryRef": "repeticoes1"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Duplicados"
+                  }
+                },
+                "Property": "dateTime"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "199.60197774968685D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(UNS (2).repeticoes)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "107.05893831499922D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(UNS (2).Cycle_Time)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "92.68103846229022D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "UNS (2).Nseq"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "118.26196289426852D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "UNS (2).CSALD"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "97.5117311227228D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "UNS (2).Machine"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "126.46140885319754D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "UNS (2).dateTime"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

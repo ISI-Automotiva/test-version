@@ -1,0 +1,803 @@
+table RT_EventosMáquina
+	lineageTag: 04d268e2-20d6-4734-b045-23f5ea3c382a
+
+	measure 'Média Cyclos OK' = ```
+			
+			AVERAGEX(
+			    FILTER(
+			        VALUES('RT_EventosMáquina'[ClassificaçãoParada]),
+			        ISBLANK('RT_EventosMáquina'[ClassificaçãoParada])
+			    ),
+			    CALCULATE(AVERAGE('RT_EventosMáquina'[Cycle_Time]))
+			)
+			
+			```
+		lineageTag: 9bdfd40e-441c-4384-8a31-f0e803cb5775
+
+		extendedProperty MeasureTemplate =
+				{
+				  "version": 0,
+				  "daxTemplateName": "AveragePerCategory"
+				}
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% de Ciclos com Parada' = ```
+			
+			 VAR Numerador =  COUNTROWS(
+			        FILTER(
+			            'RT_EventosMáquina',
+			            'RT_EventosMáquina'[ClassificaçãoParada] IN {"Quebra", "Microparada"}
+			        )
+			    )
+			VAR Denominador =
+			    COUNTROWS('RT_EventosMáquina')
+			RETURN
+			    DIVIDE( Numerador, Denominador )
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 1854d8a4-d6c9-458c-9205-7f96e3690587
+
+	measure Denominador = ```
+			
+			    COUNTROWS('RT_EventosMáquina')
+			```
+		formatString: 0
+		lineageTag: 424ce20d-2c19-4bb4-b265-d4e1d37cf112
+
+	measure PorcentagemOutdated_prot = ```
+			
+			VAR TotalOutdated =
+			    COALESCE(
+			        CALCULATE(
+			            DISTINCTCOUNT('RT_EventosMáquina'[Machine]),
+			            ALLSELECTED('RT_EventosMáquina'[StatusDADOS]),
+			            'RT_EventosMáquina'[StatusDADOS] = "Outdated"
+			        ),
+			        0
+			    )
+			
+			VAR TotalGeral =
+			    CALCULATE(
+			        DISTINCTCOUNT('RT_EventosMáquina'[Machine]),
+			        ALLSELECTED('RT_EventosMáquina'[StatusDADOS])
+			    )
+			
+			RETURN
+			    DIVIDE(TotalOutdated, TotalGeral, 0)
+			
+			    
+			```
+		lineageTag: dc522a68-74f8-4eb6-b5ac-83b7245568a5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure TC_Máquina_Média_Interquartil2 = ```
+			
+			VAR Q1 = [TC_Máquina'Q1]
+			VAR Q3 = [TC_Máquina'Q3]
+			RETURN
+			    CALCULATE(
+			        AVERAGE('RT_EventosMáquina'[Cycle_Time]),
+			        FILTER(
+			            VALUES('RT_EventosMáquina'),
+			            'RT_EventosMáquina'[Cycle_Time] >= Q1 &&
+			            'RT_EventosMáquina'[Cycle_Time] <= Q3
+			        )
+			    )
+			
+			```
+		lineageTag: 209c5f81-865b-48ed-b446-ffb97fb6bcb1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TC_Moda 2' =
+			
+			MINX(
+			    TOPN(
+			        1,
+			        ADDCOLUMNS(
+			            VALUES('RT_EventosMáquina'[Cycle_Time]),
+			            "Frequency", CALCULATE(COUNT('RT_EventosMáquina'[Cycle_Time]))
+			        ),
+			        [Frequency],
+			        0
+			    ),
+			    'RT_EventosMáquina'[Cycle_Time]
+			)
+		lineageTag: 8fd97307-d29f-4f2e-94cd-e18117ac7283
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Shop
+		dataType: string
+		lineageTag: cc017c82-c5e5-4704-9845-8bc223fbc4d9
+		summarizeBy: none
+		sourceColumn: Shop
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Station
+		dataType: string
+		lineageTag: 18e61a82-ddda-45ed-b319-4ccf6a4b3ac0
+		summarizeBy: none
+		sourceColumn: Station
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Nseq
+		dataType: string
+		lineageTag: 0ee5644c-48a9-40af-a2d4-4b7f3e881314
+		summarizeBy: none
+		sourceColumn: Nseq
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column C_Good
+		dataType: int64
+		formatString: 0
+		lineageTag: 1f67a61c-deef-43be-894f-8ca769e195bb
+		summarizeBy: sum
+		sourceColumn: C_Good
+
+		annotation SummarizationSetBy = Automatic
+
+	column TC_Referencia
+		dataType: double
+		formatString: 0
+		lineageTag: e833d47e-12a7-46bd-a2fe-cf4f9c44472a
+		summarizeBy: sum
+		sourceColumn: TC_Referencia
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column DeltaTC
+		dataType: int64
+		formatString: 0
+		lineageTag: 6573f6cd-d311-4514-ba92-7555565e3ece
+		summarizeBy: sum
+		sourceColumn: DeltaTC
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClassesHistograma
+		dataType: string
+		lineageTag: 4ab6b605-6b6b-44d8-9968-8d3d2481fc51
+		summarizeBy: none
+		sourceColumn: ClassesHistograma
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Data
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: ce8de596-12d0-47ed-9149-36bd0caaf61c
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Time
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 5805c09d-7d26-482a-975c-e07030cc46d6
+		summarizeBy: none
+		sourceColumn: Time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'Hora.1'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1838e6a0-809a-4764-9163-192e03c39488
+		summarizeBy: sum
+		sourceColumn: Hora.1
+
+		annotation SummarizationSetBy = Automatic
+
+	column Turno
+		dataType: string
+		lineageTag: 7432bfe0-73c2-4549-b647-078d96dc713f
+		summarizeBy: none
+		sourceColumn: Turno
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column dateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ce7c4d89-e4cb-4ac6-b128-be8bb53de5e2
+		summarizeBy: none
+		sourceColumn: dateTime
+
+		variation Variation
+			isDefault
+			relationship: 03ea8594-e4d1-4b5f-9d10-d5b64471ba90
+			defaultHierarchy: LocalDateTable_b0418227-6293-4aa0-8df4-6f97ec960567.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Line
+		dataType: string
+		lineageTag: b8a6a8dd-aae0-40eb-b2c7-3afa094247a9
+		summarizeBy: none
+		sourceColumn: Line
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cycle_Time
+		dataType: double
+		formatString: 0
+		lineageTag: d2d0b2ec-0904-427f-bb6d-5917ecd8f75d
+		summarizeBy: sum
+		sourceColumn: Cycle_Time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column MachineLabel
+		dataType: string
+		lineageTag: 9f9ec258-4b20-4735-90d8-434337a5ae7b
+		summarizeBy: none
+		sourceColumn: MachineLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataHora
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c84eb5ba-e7bf-4f71-bca2-882744ac5288
+		summarizeBy: none
+		sourceColumn: DataHora
+
+		variation Variation
+			isDefault
+			relationship: 80247b26-5109-4172-afb3-4a46ed30b45f
+			defaultHierarchy: LocalDateTable_a07ff67b-9c17-40c2-9a6e-772fa0cc9e72.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+	column CSALD
+		dataType: string
+		lineageTag: 1f834d5e-3229-4c6b-8700-d654ccf7d960
+		summarizeBy: none
+		sourceColumn: CSALD
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrigemDados
+		dataType: string
+		lineageTag: 1618164d-6204-4dcd-9e30-c332e23ed689
+		summarizeBy: none
+		sourceColumn: OrigemDados
+
+		annotation SummarizationSetBy = Automatic
+
+	column StatusDADOS = ```
+			
+			VAR CurrentTimerName = 'RT_EventosMáquina'[Machine]
+			
+			-- Último registro da máquina
+			VAR LatestTimeSlot =
+			    CALCULATE(
+			        MAX('RT_EventosMáquina'[dateTime]),
+			        FILTER(
+			            'RT_EventosMáquina',
+			            'RT_EventosMáquina'[Machine] = CurrentTimerName
+			        )
+			    )
+			
+			-- Data do último refresh
+			VAR DashboardRefreshDate = MAX('DataUpdate'[Last Refresh Date Time])
+			
+			-- Contagem de Cycle_time no mesmo dia
+			VAR CountCycleTimeToday =
+			    CALCULATE(
+			        COUNTROWS('RT_EventosMáquina'),
+			        FILTER(
+			            'RT_EventosMáquina',
+			            'RT_EventosMáquina'[Machine] = CurrentTimerName
+			            && FORMAT('RT_EventosMáquina'[dateTime], "YYYYMMDD") = FORMAT(DashboardRefreshDate, "YYYYMMDD")
+			        )
+			    )
+			
+			RETURN
+			    IF(
+			        FORMAT(LatestTimeSlot, "YYYYMMDD") = FORMAT(DashboardRefreshDate, "YYYYMMDD")
+			        && CountCycleTimeToday > 5,
+			        "Updated",
+			        "Outdated"
+			    )
+			
+			
+			
+			```
+		lineageTag: b56321c2-c07d-41ce-9a90-6465ade40f94
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Delta_Time_Cycle
+		dataType: double
+		lineageTag: bb4ac67d-d45a-41b6-87a8-a44d5b24d3fa
+		summarizeBy: sum
+		sourceColumn: Delta_Time_Cycle
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column origem_consulta
+		dataType: string
+		lineageTag: 036fb6b0-b729-43c8-bb27-5b4801013396
+		summarizeBy: none
+		sourceColumn: origem_consulta
+
+		annotation SummarizationSetBy = Automatic
+
+	column inconsis
+		dataType: string
+		lineageTag: 405816a5-c35b-4c58-8d59-16cf3cd53783
+		summarizeBy: none
+		sourceColumn: inconsis
+
+		annotation SummarizationSetBy = Automatic
+
+	column LinhaEstacao
+		dataType: string
+		lineageTag: 44a16182-c1e0-4ac8-b182-593bec7fb80e
+		summarizeBy: none
+		sourceColumn: LinhaEstacao
+
+		annotation SummarizationSetBy = Automatic
+
+	column Machine
+		dataType: string
+		lineageTag: dd211340-5d2b-44f5-a44b-2a657035dda2
+		summarizeBy: none
+		sourceColumn: Machine
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RT_EventosMáquina-28ecd8e2-493c-40fe-8dd9-16249700d074 = m
+		mode: import
+		source = ```
+				let
+				    Fonte = GoogleBigQuery.Database(),
+				    #"data-lake-manufacturing" = Fonte{[Name="data-lake-manufacturing"]}[Data],
+				
+				    SQL_Query = "
+				WITH 
+				-- =============================================================================
+				-- BLOCO 1: LÓGICA UNS (Origem: Payload JSON)
+				-- =============================================================================
+				uns_base AS (
+				    SELECT
+				        TIMESTAMP_MILLIS(CAST(JSON_VALUE(payload, '$._timestamp') AS INT64)) AS dateTime,
+				        JSON_VALUE(payload, '$.Plant')             AS Plant,
+				        JSON_VALUE(payload, '$.Shop')             AS Shop,
+				        JSON_VALUE(payload, '$.Line')             AS Line,
+				        REPLACE(JSON_VALUE(payload, '$.Station'), 'ST', '') AS Station,
+				        JSON_VALUE(payload, '$.Machine')          AS Machine,
+				        JSON_VALUE(payload, '$.NSEQ')             AS Nseq,
+				        JSON_VALUE(payload, '$.CSALD')            AS CSALD,
+				        SAFE_CAST(JSON_VALUE(payload, '$.C_GOOD') AS INT64) AS C_Good,
+				        CAST(JSON_VALUE(payload, '$.Cycle_Time')       AS FLOAT64) AS Cycle_Time,
+				        CAST(JSON_VALUE(payload, '$.Delta_Time_Cycle') AS FLOAT64) AS Delta_Time_Cycle
+				    FROM `data-lake-manufacturing.Analytics_emille.vw_rawpubsubdata`
+				    WHERE DATE(timestamp) >= DATE_SUB(
+				            DATE_TRUNC(CURRENT_DATE(), WEEK(MONDAY)),INTERVAL 1 MONTH)
+				        AND topic LIKE '%DataProducts/CycleTime%' 
+				),
+				
+				uns_linha_estacao AS (
+				    SELECT
+				        *,
+				        CONCAT(Line, Station) AS LinhaEstacao1
+				    FROM uns_base
+				),
+				
+				uns_tc_ref AS (
+				    SELECT
+				        *,
+				        CASE
+				            WHEN Line LIKE '%SCC%' OR Line LIKE '%SCE%' OR
+				                 Line LIKE '%AUC%' OR Line LIKE '%AUE%' OR
+				                 Line LIKE '%TEA%' OR Line LIKE '%PPA%' THEN 52
+				            WHEN Line LIKE '%OFS%' OR Line LIKE '%OFD%' OR
+				                 Line LIKE '%FDA%' OR Line LIKE '%FSA%' OR
+				                 Line LIKE '%FPD%' OR Line LIKE '%FPS%' OR
+				                 Line LIKE '%PAN%' OR Line LIKE '%SPJ%' OR
+				                 Line LIKE '%TUP%' THEN 50
+				            WHEN Line LIKE '%PPF%' OR Line LIKE '%PBP%' THEN 89
+				            WHEN Line = 'TPF' THEN 56
+				            WHEN Line = 'SPO' THEN 66
+				            WHEN Line = 'SPG' THEN 69
+				            WHEN Line = 'COF' THEN 62
+				            ELSE 55
+				        END AS TC_Referencia
+				    FROM uns_linha_estacao
+				),
+				
+				uns_substituida AS (
+				    SELECT
+				        REPLACE(Station, '_Nw', '') AS Station,
+				        REPLACE(Machine, '_Nw', '') AS Machine,
+				        Shop,
+				        C_Good,
+				        Cycle_Time,
+				        Nseq,
+				        dateTime,
+				        CSALD,
+				        SPLIT(Line, '_')[SAFE_OFFSET(0)] AS Line,
+				        SPLIT(Line, '_')[SAFE_OFFSET(1)] AS OrigemDados,
+				        LinhaEstacao1,
+				        TC_Referencia,
+				        Delta_Time_Cycle
+				    FROM uns_tc_ref
+				),
+				
+				uns_machine_label AS (
+				    SELECT
+				        *,
+				        CASE
+				            WHEN Machine = 'ST' OR Machine IS NULL OR Machine = '' THEN 'Station'
+				            ELSE 'Machine'
+				        END AS MachineLabel
+				    FROM uns_substituida
+				),
+				
+				uns_final AS (
+				    SELECT
+				        REPLACE(Station, 'ST', '') AS Station,
+				        -- === ALTERAÇÃO AQUI ===
+				        -- Se Machine estiver vazia, nula ou for 'ST', concatena Line e Station.
+				        -- Caso contrário, mantém a lógica de concatenar Line e Machine.
+				        CASE 
+				            WHEN Machine IS NULL OR TRIM(Machine) = '' OR Machine = 'ST' 
+				                THEN CONCAT(Line, REPLACE(Station, 'ST', ''))
+				            ELSE CONCAT(Line, IFNULL(REPLACE(Machine, 'ST', ''), ''))
+				        END AS Machine,
+				        -- ======================
+				        Shop,
+				        C_Good,
+				        Cycle_Time,
+				        Nseq,
+				        dateTime,
+				        CSALD,
+				        Line,
+				        OrigemDados,
+				        LinhaEstacao1,
+				        TC_Referencia,
+				        MachineLabel,
+				        Delta_Time_Cycle
+				    FROM uns_machine_label
+				),
+				
+				uns_filtro_atividade AS (
+				    SELECT 
+				        *,
+				        MAX(dateTime) OVER (PARTITION BY Shop, Line, Station, Machine) as ultima_atividade_maquina
+				    FROM uns_final
+				),
+				
+				-- Resultado final do Bloco UNS
+				uns_result_set AS (
+				    SELECT 
+				        TIMESTAMP_SUB(dateTime, INTERVAL 3 HOUR) AS dateTime,
+				        TIMESTAMP_SUB(TIMESTAMP_TRUNC(dateTime, HOUR), INTERVAL 3 HOUR) AS DataHora,
+				        Shop,
+				        Line,
+				        Station,
+				        Machine,
+				        Nseq,       -- STRING
+				        CSALD,      -- STRING
+				        C_Good,     -- INT64
+				        Cycle_Time,
+				        Delta_Time_Cycle,
+				        OrigemDados,
+				        LinhaEstacao1 AS LinhaEstacao,
+				        TC_Referencia,
+				        MachineLabel,
+				        'UNS' AS origem_consulta
+				    FROM uns_filtro_atividade
+				    WHERE ultima_atividade_maquina >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)
+				),
+				
+				-- =============================================================================
+				-- BLOCO 2: LÓGICA EMILLE (Origem: Tabela GoI)
+				-- =============================================================================
+				emille_base AS (
+				    SELECT
+				        maq AS Machine, 
+				        st AS Station,
+				        shop AS Shop,
+				        CAST(c_good AS INT64) AS C_Good,
+				        tcdata AS Cycle_Time,
+				        nseq AS Nseq,
+				        timestamp AS dateTime,
+				        csald AS CSALD,
+				        REPLACE(line, 'ST', '') AS Line
+				    FROM `data-lake-manufacturing.Analytics_emille.vw_goi_tempociclo`
+				    WHERE DATE(timestamp) >= DATE_SUB(
+				            DATE_TRUNC(CURRENT_DATE(), WEEK(MONDAY)), INTERVAL 1 MONTH
+				        )
+				      AND csald != 0
+				),
+				
+				emille_tc_ref AS (
+				    SELECT *,
+				        CASE
+				            WHEN Line LIKE '%SCC%' OR Line LIKE '%SCE%' OR 
+				                 Line LIKE '%AUC%' OR Line LIKE '%AUE%' OR 
+				                 Line LIKE '%TEA%' OR Line LIKE '%PPA%' THEN 52
+				            WHEN Line LIKE '%OFS%' OR Line LIKE '%OFD%' OR 
+				                 Line LIKE '%FDA%' OR Line LIKE '%FSA%' OR 
+				                 Line LIKE '%FPD%' OR Line LIKE '%FPS%' OR 
+				                 Line LIKE '%PAN%' OR Line LIKE '%SPJ%' OR 
+				                 Line LIKE '%TUP%' THEN 50
+				            WHEN Line LIKE '%PPF%' OR Line LIKE '%PBP%' THEN 89
+				            WHEN Line = 'TPF' THEN 56
+				            WHEN Line = 'SPO' THEN 66
+				            WHEN Line = 'SPG' THEN 69
+				            WHEN Line = 'COF' THEN 62
+				            ELSE 55
+				        END AS TC_Referencia
+				    FROM emille_base
+				),
+				
+				emille_substituida AS (
+				    SELECT
+				        REPLACE(REPLACE(Station, '_Nw', ''), 'ST', '') AS Station,
+				        REPLACE(Machine, '_Nw', '') AS Machine,
+				        Shop,
+				        C_Good,
+				        Cycle_Time,
+				        Nseq,
+				        dateTime,
+				        CSALD,
+				        SPLIT(Line, '_')[SAFE_OFFSET(0)] AS Line,
+				        SPLIT(Line, '_')[SAFE_OFFSET(1)] AS OrigemDados,
+				        TC_Referencia
+				    FROM emille_tc_ref
+				),
+				
+				emille_machine_label AS (
+				    SELECT *,
+				        CASE 
+				            WHEN Machine = 'ST' OR Machine IS NULL OR Machine = '' 
+				            THEN 'Station' ELSE 'Machine'
+				        END AS MachineLabel
+				    FROM emille_substituida
+				),
+				
+				emille_remover_letras AS (
+				    SELECT *,
+				        CASE
+				            WHEN Machine IS NULL OR TRIM(Machine) = '' THEN Machine
+				            WHEN NOT REGEXP_CONTAINS(UPPER(Machine), r'(TTB|TT|TR|PC|R|T)')
+				                THEN Machine
+				            ELSE REGEXP_REPLACE(
+				                    UPPER(Machine),
+				                    r'^.*(TTB|TT|TR|PC|R|T)',
+				                    'R'
+				                  )
+				        END AS Machine_clean
+				    FROM emille_machine_label
+				),
+				
+				emille_unir_line_machine AS (
+				    SELECT *,
+				        CASE
+				            WHEN Machine_clean IS NULL 
+				                 OR TRIM(Machine_clean) = '' 
+				                 OR UPPER(Machine_clean) = 'ST'
+				                THEN CONCAT(Line, Station)
+				            WHEN REGEXP_CONTAINS(
+				                    UPPER(Machine_clean),
+				                    UPPER(CONCAT(Line, Station))
+				                  )
+				                THEN Machine_clean
+				            ELSE CONCAT(Line, Station, Machine_clean)
+				        END AS Machine_final
+				    FROM emille_remover_letras
+				),
+				
+				emille_final AS (
+				    SELECT
+				        Station,
+				        REGEXP_REPLACE(
+				            REGEXP_REPLACE(Machine_final, r'TT|TR', 'R'),
+				            r'R$', ''
+				        ) AS Machine,
+				        Shop,
+				        C_Good,
+				        Cycle_Time,
+				        Nseq,
+				        DATETIME_TRUNC(DATETIME(dateTime), HOUR) AS DataHora,
+				        dateTime,
+				        CSALD,
+				        Line,
+				        OrigemDados,
+				        COALESCE(
+				            REGEXP_SUBSTR(CONCAT(Line, Station), r'^(.*)_'),
+				                CONCAT(Line, Station)) AS LinhaEstacao,
+				       TC_Referencia,
+				        MachineLabel
+				    FROM emille_unir_line_machine
+				),
+				
+				-- CTEs Auxiliares para o filtro final da Emille (Lógica PubSub)
+				emille_cycle_machines AS (
+				    SELECT DISTINCT
+				        JSON_VALUE(payload, '$.Machine') AS Machine_raw,
+				        JSON_VALUE(payload, '$.Line')   AS Line,
+				        REPLACE(JSON_VALUE(payload, '$.Station'), 'ST', '') AS Station_raw
+				    FROM `data-lake-manufacturing.Analytics_emille.vw_rawpubsubdata`
+				    WHERE DATE(timestamp) >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+				      AND topic LIKE '%DataProducts/CycleTime%'
+				),
+				
+				emille_station_clean AS (
+				    SELECT
+				        Machine_raw,
+				        Line,
+				        REGEXP_REPLACE(UPPER(Station_raw), r'ST', '') AS Station
+				    FROM emille_cycle_machines
+				),
+				
+				emille_clean_machine AS (
+				    SELECT *,
+				        CASE
+				            WHEN Machine_raw IS NULL OR Machine_raw = '' THEN Machine_raw
+				            WHEN NOT REGEXP_CONTAINS(UPPER(Machine_raw), r'R')
+				                 OR REGEXP_CONTAINS(UPPER(Machine_raw), r'(DL|LD)')
+				            THEN Machine_raw
+				            ELSE CONCAT(
+				                SUBSTR(UPPER(Machine_raw), 1, REGEXP_INSTR(UPPER(Machine_raw), r'R')),
+				                REGEXP_REPLACE(
+				                    SUBSTR(UPPER(Machine_raw), REGEXP_INSTR(UPPER(Machine_raw), r'R') + 1),
+				                    r'[^0-9DL]',
+				                    ''
+				                )
+				            )
+				        END AS Machine_clean
+				    FROM emille_station_clean
+				),
+				
+				emille_unified_machine AS (
+				    SELECT
+				        Line,
+				        Station,
+				        CASE
+				            WHEN REGEXP_CONTAINS(UPPER(Machine_raw), r'ST') THEN CONCAT(Line, Station)
+				            WHEN Machine_raw IS NULL OR TRIM(Machine_raw) = '' THEN CONCAT(Line, Station)
+				            WHEN REGEXP_CONTAINS(UPPER(Machine_clean), UPPER(Line)) THEN Machine_clean
+				            ELSE CONCAT(Line, Machine_clean)
+				        END AS Machine
+				    FROM emille_clean_machine
+				),
+				
+				-- Resultado final do Bloco Emille
+				emille_result_set AS (
+				    SELECT 
+				        CAST(f.dateTime AS TIMESTAMP) AS dateTime,
+				        CAST(f.DataHora AS TIMESTAMP) AS DataHora,
+				        f.Shop,
+				        f.Line,
+				        f.Station,
+				        f.Machine,
+				        CAST(f.Nseq AS STRING) AS Nseq,
+				        CAST(f.CSALD AS STRING) AS CSALD,
+				        f.C_Good,
+				        CAST(f.Cycle_Time AS FLOAT64) as Cycle_Time,
+				        CAST(NULL AS FLOAT64) AS Delta_Time_Cycle,
+				        f.OrigemDados,
+				        f.LinhaEstacao,
+				        CAST(f.TC_Referencia AS FLOAT64) as TC_Referencia,
+				        f.MachineLabel,
+				        'Emille' as origem_consulta
+				    FROM emille_final f
+				    LEFT JOIN emille_unified_machine u
+				        ON f.Machine = u.Machine
+				    WHERE u.Machine IS NULL
+				)
+				
+				-- =============================================================================
+				-- UNIÃO FINAL
+				-- =============================================================================
+				SELECT * FROM uns_result_set
+				UNION ALL
+				SELECT * FROM emille_result_set
+				    ",
+				    ConsultaNativa = Value.NativeQuery(#"data-lake-manufacturing", SQL_Query),
+				    #"Inconsistencias em TC e DeltaTC HB" = if Table.HasColumns(ConsultaNativa, "Delta_Time_Cycle") then
+				    Table.AddColumn(ConsultaNativa, "inconsis", each [Cycle_Time] > [Delta_Time_Cycle])
+				  else
+				    Fonte,
+				    #"Linhas Filtradas" = Table.SelectRows(#"Inconsistencias em TC e DeltaTC HB", each true),
+				    #"Coluna DeltaTC" = Table.AddColumn(#"Linhas Filtradas", "DeltaTC", each [Cycle_Time]-[TC_Referencia], Int64.Type),
+				    ClassesHistograma = Table.AddColumn(
+				    #"Coluna DeltaTC",
+				    "ClassesHistograma",
+				    each 
+				        if [DeltaTC] = null then null
+				        else if [DeltaTC] <= -4 then "TC<-4"
+				        else if [DeltaTC] = -3 then "TC=-3"
+				        else if [DeltaTC] = -2 then "TC=-2"
+				        else if [DeltaTC] = -1 then "TC=-1"
+				        else if [DeltaTC] = 0 then "TC=0"
+				        else if [DeltaTC] = 1 then "TC=+1"
+				        else if [DeltaTC] = 2 then "TC=+2"
+				        else if [DeltaTC] = 3 then "TC=+3"
+				        else if [DeltaTC] = 4 then "TC=+4"
+				        else if [DeltaTC] >= 5 then "TC>+5"
+				        else null
+				),
+				    #"Data Inserida" = Table.AddColumn(ClassesHistograma, "Data", each DateTime.Date([dateTime]), type date),
+				    #"Time Inserido" = Table.AddColumn(#"Data Inserida", "Time", each DateTime.Time([dateTime]), type time),
+				    #"Hora Inserida" = Table.AddColumn(#"Time Inserido", "Hora.1", each Time.Hour([dateTime]), Int64.Type),
+				    #"Coluna Turno" = Table.AddColumn(#"Hora Inserida", "Turno", each if [Time] < #time(6, 0, 0) then "00:00:00 às 05:59:59 - 3T" else if [Time] < #time(15, 48, 0) then "06:00:00 às 15:47:59 - 1T" else "15:48:00 às 23:59:59 - 2T"),
+				    #"Cria nova colunaCSALD" = Table.TransformColumns(
+				        Table.AddColumn(
+				            #"Coluna Turno",
+				            "CSALD_temp",
+				            each
+				                if [CSALD] = null then
+				                    "Unknown"
+				                else if not List.Contains(
+				                    {"AUC_Nw", "AUE_Nw", "FDA", "FPD", "FSA", "FPS", "OFS", "OFD", "SCC", "OFS_highbyte", "SCC_highbyte"},
+				                    [Line]
+				                ) then
+				                    if List.Contains({501, 502, 503, 504}, Number.From([CSALD])) then "5"
+				                    else if List.Contains({601, 602, 603, 604}, Number.From([CSALD])) then "1"
+				                    else if List.Contains({591, 592}, Number.From([CSALD])) then "7"
+				                    else if List.Contains({201, 202, 203, 204}, Number.From([CSALD])) then "3"
+				                    else Text.From(Number.From([CSALD]))
+				                else
+				                    Text.From(Number.From([CSALD]))
+				        ),
+				        {{"CSALD_temp", each _, type text}}
+				    ),
+				    RemoverCSALD = Table.RemoveColumns(#"Cria nova colunaCSALD", {"CSALD"}),
+				    RenomearCSALD = Table.RenameColumns(RemoverCSALD,{{"CSALD_temp", "CSALD"}}),
+				    #"Valor Substituído" = Table.ReplaceValue(RenomearCSALD,"ST","",Replacer.ReplaceText,{"LinhaEstacao"}),
+				    #"Valor Substituído2" = Table.ReplaceValue(#"Valor Substituído","OFS060TR01","OFS060",Replacer.ReplaceText,{"LinhaEstacao"}),
+				    #"Valor Substituído1" = Table.ReplaceValue(#"Valor Substituído2","OFS060R01","OFS060",Replacer.ReplaceText,{"LinhaEstacao"}),
+				    Adiciona = Table.AddColumn(
+				        #"Valor Substituído1",
+				        "Machine_new",
+				        each if Text.Contains([Machine], "OFS060R01") and [MachineLabel] = "Station"
+				             then "OFS060"
+				             else [Machine],
+				        type text
+				    ),
+				    RemoveAntiga = Table.RemoveColumns(Adiciona, {"Machine"}),
+				    Renomeia = Table.RenameColumns(RemoveAntiga, {{"Machine_new", "Machine"}})
+				in
+				    Renomeia
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

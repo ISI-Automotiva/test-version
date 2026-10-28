@@ -1,0 +1,489 @@
+cultureInfo pt-BR
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "medidas_gerais.índice_de_desvio_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Índice de Desvio %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Índice σ  %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.coeficiente_de_variação_cv": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Coeficiente de Variação (CV)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "CV": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.de_ciclos_ko": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "% de Ciclos KO Ajustada"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "QTD. KO %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "KO %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "extweldmeasureprot2_v.electrodeno": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "ExtWeldMeasureProt2_V",
+			          "ConceptualProperty": "electrodeNo"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "rt_eventosmáquina.média_de_média_de_cycle_time_por_classificaçãoparada": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "Média Cyclos OK"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "goi_tempociclo.linhaestacao1": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Goi_TempoCiclo",
+			          "ConceptualProperty": "LinhaEstacao1"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "goi_tempociclo.maq": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Goi_TempoCiclo",
+			          "ConceptualProperty": "Maq"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_gerais.índice_de_desvio_da_mediana_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Media TC KO%"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Media TC KO%": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "rt_eventosmáquina.de_ciclos_com_parada": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "% de Ciclos com Parada"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_gerais_estação.médiamicroparada_carrosproduzidosestação": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais Estação",
+			          "ConceptualProperty": "MédiaMicroparada/CarrosProduzidos*Estação"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_perdas_estação.eventosregmicropestacao": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Perdas Estação",
+			          "ConceptualProperty": "EventosRegMicropEstacao"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_perdas_estação.maxregmicropestacao": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Perdas Estação",
+			          "ConceptualProperty": "MaxRegMicropEstacao"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_perdas_estação.totalregmicropestacao": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Perdas Estação",
+			          "ConceptualProperty": "TotalRegMicropEstacao"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_perdas_estação.eventosregquebraestacao": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Perdas Estação",
+			          "ConceptualProperty": "EventosRegQuebraEstacao"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_perdas_estação.maxregquebrasestacao": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Perdas Estação",
+			          "ConceptualProperty": "MaxRegQuebrasEstacao"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_perdas_estação.totalregquebrasestacao": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Perdas Estação",
+			          "ConceptualProperty": "TotalRegQuebrasEstacao"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "rt_eventosmáquina.nseq": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "Nseq"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_gerais.tempo_perdido_total_s": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Tempo Perdido Total (s)"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "extweldmeasureprot2_v.lineedit": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "ExtWeldMeasureProt2_V",
+			          "ConceptualProperty": "lineEdit"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "extweldmeasureprot2_v.timername": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "ExtWeldMeasureProt2_V",
+			          "ConceptualProperty": "timerName"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "extweldmeasureprot2_v.statusdados": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "ExtWeldMeasureProt2_V",
+			          "ConceptualProperty": "StatusDADOS"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "rt_eventosmáquina.line": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "Line"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "LINHA": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "rt_eventosmáquina.datetime": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "dateTime"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "rt_eventosmáquina.statusdados": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "StatusDADOS"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_tc_máquina.tc_máquina_média_interquartil": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas TC Máquina",
+			          "ConceptualProperty": "TC_Máquina_Média_Interquartil"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "medidas_gerais.tc_moda": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "TC_Moda"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "rt_eventosmáquina.tc_máquina_média_interquartil2": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "TC_Máquina_Média_Interquartil2"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "rt_eventosmáquina.machine": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "Machine"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "ROBÔ": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dmodelos.style_model": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dModelos",
+			          "ConceptualProperty": "Style_Model"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "rt_eventosmáquina.origem_consulta": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "RT_EventosMáquina",
+			          "ConceptualProperty": "origem_consulta"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Origem": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.ciclos_ko": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Ciclos KO Ajustado"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "QTD. KO": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.media_cycle_time_ko": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Media Cycle Time KO Ajustada"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Media TC KO": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.qtd_total_ajustada": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "QTD TOTAL Ajustada"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "QTD TOTAL TC": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.ciclos_totais_média": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Ciclos Totais Média"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Média TC": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.ciclos_totais_mínimo": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Ciclos Totais Mínimo"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Min TC": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "medidas_gerais.nivel_de_prioridade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Medidas Gerais",
+			          "ConceptualProperty": "Nivel de Prioridade"
+			        }
+			      },
+			      "State": "Generated"
+			    }
+			  }
+			}
+		contentType: json
+

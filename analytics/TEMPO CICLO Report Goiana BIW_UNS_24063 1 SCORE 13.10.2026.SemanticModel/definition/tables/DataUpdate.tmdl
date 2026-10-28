@@ -1,0 +1,35 @@
+table DataUpdate
+	lineageTag: d610d711-05e6-407b-b59f-e88690cda0fe
+
+	column 'Last Refresh Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 45c1b3b4-0053-4093-979f-edb5e7e76873
+		summarizeBy: none
+		sourceColumn: Last Refresh Date Time
+
+		variation Variation
+			isDefault
+			relationship: 66fb773b-ea0b-4f65-b62e-4d40fc15446b
+			defaultHierarchy: LocalDateTable_802ffc48-335d-4537-a8e6-951ac10fc612.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DataUpdate-a191f227-30c2-4039-ab3f-5ebbad70bede = m
+		mode: import
+		source = ```
+				let
+				    TodaysDate = DateTime.From(DateTimeZone.SwitchZone(DateTimeZone.FixedLocalNow(),10)),
+				    
+				    #"Converted to Table" = #table(1, {{TodaysDate}}),
+				
+				    #"Renamed Columns" = Table.RenameColumns(#"Converted to Table", {{"Column1", "Last Refresh Date Time"}}),
+				    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Last Refresh Date Time",type datetime}})
+				in
+				    #"Tipo Alterado1"
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
