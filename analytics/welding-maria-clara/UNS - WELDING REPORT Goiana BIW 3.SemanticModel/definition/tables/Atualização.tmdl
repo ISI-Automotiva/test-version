@@ -1,0 +1,20 @@
+table Atualização
+	lineageTag: 0f5e8038-d314-481e-b3e2-b4243ba0cf65
+
+	column 'Date Last Refreshed'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 44fccbb1-3730-49be-9c4a-fbf0504baa52
+		summarizeBy: none
+		sourceColumn: Date Last Refreshed
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Atualização = m
+		mode: import
+		source = #table(type table[Date Last Refreshed=datetime],  {{DateTime.LocalNow()} })
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação
+

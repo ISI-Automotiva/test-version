@@ -1,0 +1,94 @@
+table Fato_PHA2_Diario
+	lineageTag: a088aa1b-ec75-4e8e-8b12-9f19e012ef8c
+
+	column timerName
+		dataType: string
+		lineageTag: 05ea2821-eab0-4549-96eb-a04f396d8f23
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 60777d56-ccb9-48c2-8cbb-cb6def83c7b7
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column pha2_dia
+		dataType: double
+		lineageTag: ad4a7351-9c8b-46d2-a025-137c006c4430
+		summarizeBy: sum
+		sourceColumn: pha2_dia
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition Fato_PHA2_Diario = m
+		mode: import
+		source =
+				let
+				    Fonte = GoogleBigQuery.Database(),
+				
+				    // Acessa o projeto
+				    #"data-lake-manufacturing" =
+				        Fonte{[Name="data-lake-manufacturing"]}[Data],
+				
+				    // Executa a consulta SQL diretamente no BigQuery
+				    QueryPHA2 =
+				        Value.NativeQuery(
+				            #"data-lake-manufacturing",
+				            "
+				            SELECT
+				                TRIM(electrodeNo) AS timerName,
+				                DATE(day_key) AS Data,
+				                AVG(pha2) AS pha2_dia
+				            FROM
+				                `data-lake-manufacturing.Analytics_emille.tb_Agg_WeldMeasureProt`
+				            WHERE
+				                pha2 IS NOT NULL
+				                AND pha2 > 0
+				            GROUP BY
+				                TRIM(electrodeNo),
+				                DATE(day_key)
+				            ORDER BY
+				                Data DESC,
+				                timerName
+				            ",
+				            null,
+				            [EnableFolding = true]
+				        ),
+				
+				    // Define os tipos
+				    #"Tipo Alterado" =
+				        Table.TransformColumnTypes(
+				            QueryPHA2,
+				            {
+				                {"timerName", type text},
+				                {"Data", type date},
+				                {"pha2_dia", type number}
+				            }
+				        ),
+				
+				    // Ordena pela data mais recente
+				    #"Linhas Classificadas" =
+				        Table.Sort(
+				            #"Tipo Alterado",
+				            {{"Data", Order.Descending}}
+				        ),
+				    #"Consulta Acrescentada" = Table.Combine({#"Linhas Classificadas", PHA2_Diario_fixo}),
+				    #"Duplicatas Removidas" = Table.Distinct(#"Consulta Acrescentada", {"timerName", "Data"}),
+				    #"Linhas Classificadas1" = Table.Sort(#"Duplicatas Removidas",{{"Data",  Order.Ascending}})
+				in
+				    #"Linhas Classificadas1"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

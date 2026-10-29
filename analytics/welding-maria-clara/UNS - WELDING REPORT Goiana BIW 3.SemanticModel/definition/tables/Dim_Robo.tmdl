@@ -1,0 +1,156 @@
+table Dim_Robo
+	lineageTag: d174a2b8-bf3d-432c-bcaf-221a9be45ab5
+
+	column timerName
+		lineageTag: 6163bdd5-891f-4537-87d9-d1d60e659dec
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [timerName]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Line
+		lineageTag: 43943f0a-514a-44ec-a041-b14c52ac7d29
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Line]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Status Bateria'
+		lineageTag: 68e15b7a-edaf-4bf9-b4ea-c6662d4c364c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Status Bateria]
+
+		annotation SummarizationSetBy = Automatic
+
+	column UTE
+		lineageTag: a87ca89b-0586-4617-ac7e-9cf02c0b506f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [UTE]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Robo = calculated
+		mode: import
+		source =
+				VAR _vistos =
+				    DISTINCT(
+				        UNION(
+				            SELECTCOLUMNS( Fato_Solda,               "k_timer", Fato_Solda[timerName],               "k_line", Fato_Solda[Line] ),
+				            SELECTCOLUMNS( Fato_Erro,                "k_timer", Fato_Erro[timerName],                "k_line", Fato_Erro[Line] ),
+				            SELECTCOLUMNS( Fato_Fresagem,          "k_timer", Fato_Fresagem[timerName],          "k_line", Fato_Fresagem[Line] ),
+				            SELECTCOLUMNS( Fato_Parametros_Corrente, "k_timer", Fato_Parametros_Corrente[timerName], "k_line", Fato_Parametros_Corrente[Line] ),
+				            SELECTCOLUMNS( Fato_MudancaParam,        "k_timer", Fato_MudancaParam[timerName],        "k_line", "" ),
+				            SELECTCOLUMNS( Fato_Pontos,              "k_timer", Fato_Pontos[timerName],              "k_line", "" ),
+				            SELECTCOLUMNS( Snap_Comunicacao,         "k_timer", Snap_Comunicacao[timerName],         "k_line", "" )
+				        )
+				    )
+				
+				-- Fato_PHA2_Diario ficou FORA do union: a coluna chamada timerName ali contem
+				-- electrodeNo, ou seja, pinca. Incluir contaminava a lista de robos com pincas.
+				
+				VAR _limpo =
+				    FILTER( _vistos, NOT ISBLANK( [k_timer] ) && [k_timer] <> "" )
+				
+				-- um registro por robo, numa passada so; fica a Line preenchida quando existir
+				VAR _base =
+				    GROUPBY( _limpo, [k_timer], "k_lineMax", MAXX( CURRENTGROUP(), [k_line] ) )
+				
+				-- so os registros de BATERIA, e a data mais recente de cada robo
+				VAR _bat =
+				    FILTER( Fato_Erro, CONTAINSSTRING( Fato_Erro[error_code], "Bateria" ) )
+				
+				VAR _batUlt =
+				    GROUPBY( _bat, Fato_Erro[timerName], "b_data", MAXX( CURRENTGROUP(), Fato_Erro[Data] ) )
+				
+				RETURN
+				SELECTCOLUMNS(
+				    ADDCOLUMNS(
+				        _base,
+				        "a_ute",
+				            -- mapa Linha->UTE; mesmo conteudo do UTE_Map escrito no M da dimensao de pinca
+				            SWITCH(
+				                [k_lineMax],
+				            "TRC", "TRC",
+				            "AUC", "UTE 1",
+				            "AUE", "UTE 1",
+				            "FDA", "UTE 1",
+				            "FPD", "UTE 1",
+				            "FPS", "UTE 1",
+				            "FSA", "UTE 1",
+				            "OFD", "UTE 1",
+				            "OFS", "UTE 1",
+				            "PAN", "UTE 1",
+				            "PBP", "UTE 1",
+				            "PPA", "UTE 1",
+				            "PPF", "UTE 1",
+				            "SCC", "UTE 1",
+				            "SCE", "UTE 1",
+				            "SPG", "UTE 1",
+				            "SPJ", "UTE 1",
+				            "TAC", "UTE 1",
+				            "TDF", "UTE 1",
+				            "TEA", "UTE 1",
+				            "TLF", "UTE 1",
+				            "TOD", "UTE 1",
+				            "TOS", "UTE 1",
+				            "TSA", "UTE 1",
+				            "TSC", "UTE 1",
+				            "TSP", "UTE 1",
+				            "TUP", "UTE 1",
+				            "TVS", "UTE 1",
+				            "COF", "UTE 2",
+				            "PLCD", "UTE 2",
+				            "PLCS", "UTE 2",
+				            "PLD", "UTE 2",
+				            "PLS", "UTE 2",
+				            "PPCD", "UTE 2",
+				            "PPCS", "UTE 2",
+				            "PPD", "UTE 2",
+				            "PPG", "UTE 2",
+				            "PPP", "UTE 2",
+				            "PPS", "UTE 2",
+				            "PRD", "UTE 2",
+				            "PRS", "UTE 2",
+				            "SPO", "UTE 2",
+				            "LDA", "UTE 3",
+				            "LFA", "UTE 3",
+				            "LFB", "UTE 3",
+				            "MHA", "UTE 3",
+				            "MHB", "UTE 3",
+				            "TED", "UTE 3",
+				            "TPF", "UTE 3",
+				            "TAF", "UTE 3",
+				            "TSF", "UTE 3",
+				            "TSV", "UTE 3",
+				            "TRV", "UTE 3",
+				                "Nao mapeado"
+				            ),
+				        "a_bat",
+				            VAR _t = [k_timer]
+				            -- data do ultimo registro de bateria DESTE robo
+				            VAR _dt = MAXX( FILTER( _batUlt, Fato_Erro[timerName] = _t ), [b_data] )
+				            -- nessa data, houve "Bateria descarreg."?
+				            VAR _desc =
+				                COUNTROWS(
+				                    FILTER( _bat,
+				                        Fato_Erro[timerName] = _t
+				                        && Fato_Erro[Data] = _dt
+				                        && Fato_Erro[error_code] = "Bateria descarreg." )
+				                )
+				            RETURN
+				                SWITCH(
+				                    TRUE(),
+				                    NOT ISBLANK( _desc ), "Desligada",
+				                    "Ligada"
+				                )
+				    ),
+				    "timerName",      [k_timer],
+				    "Line",           [k_lineMax],
+				    "UTE",            [a_ute],
+				    "Status Bateria", [a_bat]
+				)
+

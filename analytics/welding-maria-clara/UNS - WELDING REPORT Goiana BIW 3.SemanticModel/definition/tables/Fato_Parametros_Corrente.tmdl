@@ -1,0 +1,117 @@
+table Fato_Parametros_Corrente
+	lineageTag: aa572035-2a11-44f9-9f88-40c0fa575196
+
+	column Line
+		dataType: string
+		lineageTag: 945a4bdb-d175-42bf-b879-a42c734021db
+		summarizeBy: none
+		sourceColumn: Line
+
+		annotation SummarizationSetBy = Automatic
+
+	column timerName
+		dataType: string
+		lineageTag: d5cc7db6-d32f-4597-8099-40a9c4c553ca
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column subindex
+		dataType: string
+		lineageTag: f913d2aa-28a5-4a5b-b982-7e355da71124
+		summarizeBy: none
+		sourceColumn: subindex
+
+		annotation SummarizationSetBy = Automatic
+
+	column param_ID
+		dataType: int64
+		formatString: 0
+		lineageTag: daf9d182-0289-429d-be11-472df5bd7cad
+		summarizeBy: count
+		sourceColumn: param_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column value
+		dataType: double
+		lineageTag: e99a3ca0-101e-4ff3-bb22-abe03957fa44
+		summarizeBy: sum
+		sourceColumn: value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Corrente
+		dataType: string
+		lineageTag: e4fbbaa8-57b5-4caf-9958-a6205a1a1979
+		summarizeBy: none
+		sourceColumn: Corrente
+
+		annotation SummarizationSetBy = Automatic
+
+	column _timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4aa6397b-9f21-419d-8d4d-3f5b282cca97
+		summarizeBy: none
+		sourceColumn: _timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fato_Parametros_Corrente = m
+		mode: import
+		source = ```
+				let
+				    SqlString = "
+				        WITH RawData AS (
+				            SELECT 
+				                REGEXP_EXTRACT(Topic, r'^(?:[^/]+/){4}([^/]+)') AS Line, 
+				                REPLACE(JSON_EXTRACT_SCALAR(Payload, '$.timerName'), 'WB', 'R') AS timerName,
+				                JSON_EXTRACT_SCALAR(Payload, '$.subIndex') AS subindex,
+				                CAST(JSON_EXTRACT_SCALAR(Payload, '$.param_ID') AS INT64) AS param_ID,
+				                CAST(JSON_EXTRACT_SCALAR(Payload, '$.value') AS FLOAT64) AS value,
+				                
+				                TIMESTAMP_MILLIS(CAST(JSON_EXTRACT_SCALAR(Payload, '$._timestamp') AS INT64)) AS _timestamp
+				                
+				            FROM 
+				                `data-lake-manufacturing.Analytics_emille.vw_rawpubsubdata`
+				            WHERE 
+				                TIMESTAMP >= TIMESTAMP(DATE_SUB(CURRENT_DATE(), INTERVAL 4 MONTH))
+				                AND Topic LIKE '%DataProducts%ExtParamValues%'
+				        )
+				        SELECT 
+				            *,
+				            CASE 
+				                WHEN param_ID = 124 THEN 
+				                    CASE 
+				                        WHEN value = 0 THEN 'Primário'
+				                        WHEN value = 1 THEN 'Secundário'
+				                        ELSE NULL
+				                    END 
+				                ELSE NULL 
+				            END AS Corrente
+				        FROM RawData
+				        QUALIFY ROW_NUMBER() OVER (
+				            PARTITION BY timerName, subindex, param_ID 
+				            ORDER BY _timestamp DESC
+				        ) = 1
+				    ",
+				    // 1. Conecta ao banco do Google BigQuery
+				    BQ = GoogleBigQuery.Database(),
+				    
+				    // 2. Seleciona o Projeto onde a query será executada
+				    Projeto = BQ{[Name="data-lake-manufacturing"]}[Data],
+				    
+				    // 3. Executa a string SQL diretamente no projeto usando Value.NativeQuery
+				    Fonte = Value.NativeQuery(Projeto, SqlString, null, [EnableFolding=true])
+				in
+				    Fonte
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,262 @@
+table Fato_Erro
+	lineageTag: 81493ae9-1ba3-486f-9855-df9e4e80616b
+
+	measure 'Status Bateria Deslig' = ```
+			var ontem = MAX(Fato_Erro[Data]) - 1
+			
+			 return CALCULATE( COUNTROWS(Fato_Erro), FILTER(Fato_Erro, Fato_Erro[error_code]="Bateria descarreg."&& Fato_Erro[Data]=ontem))
+			    
+			```
+		formatString: 0
+		lineageTag: 5923927c-48cb-4da8-9ff0-69e6b000675d
+
+	measure Errors2 = ```
+			COUNTROWS(FILTER(Fato_Erro, Fato_Erro[isError_txt] = "Erro"))
+			    
+			```
+		formatString: 0
+		lineageTag: eb93597c-2349-4b75-8bb1-4f637b880735
+
+	measure Top3_Erros = ```
+			
+			VAR RankingAtual = 
+			    RANKX(
+			        ALLSELECTED(Fato_Erro[errorCode1_txt]), 
+			        CALCULATE(SUM(Fato_Erro[total_erros])), 
+			        , 
+			        DESC, 
+			        DENSE
+			    )
+			RETURN 
+			    IF(RankingAtual <= 3, CALCULATE(SUM(Fato_Erro[total_erros])))
+			```
+		formatString: 0
+		lineageTag: d03a098f-3d43-4430-b2a3-40d4b2281b13
+
+	measure ErrorSelecionado = ```
+			VAR TabelaFiltrada =
+			    ADDCOLUMNS(
+			        VALUES(Fato_Erro[errorCode1_txt]),
+			        "Qtd", CALCULATE(COUNTROWS('Fato_Erro'))
+			    )
+			VAR QtdeValores = COUNTROWS(TabelaFiltrada)
+			
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    QtdeValores = 0, BLANK(),
+			    QtdeValores = 1, SELECTEDVALUE('Fato_Erro'[errorCode1_txt]),
+			    CONCATENATEX(
+			        TabelaFiltrada,
+			        Fato_Erro[errorCode1_txt] & ": " & [Qtd],
+			        ", ",
+			        [Qtd],
+			        DESC
+			    )
+			)
+			    
+			```
+		lineageTag: 84ae7de9-391d-4dd0-9984-09c1c0fb6378
+
+	measure TimerNameSelecionado = ```
+			
+			VAR TabelaFiltrada =
+			    ADDCOLUMNS(
+			        VALUES('Fato_Erro'[errorCode1_txt]),
+			        "Qtd", CALCULATE(SUM('Fato_Erro'[total_erros]))
+			    )
+			
+			VAR QtdeValores = COUNTROWS(FILTER(TabelaFiltrada, [Qtd] > 0))
+			
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        QtdeValores = 0, "Nenhum erro encontrado",
+			        
+			        -- Se houver apenas 1 erro selecionado/existente
+			        QtdeValores = 1, 
+			            SELECTEDVALUE('Fato_Erro'[errorCode1_txt]) & ": " & 
+			            FORMAT(CALCULATE(SUM('Fato_Erro'[total_erros])), "#,##0"),
+			
+			        -- Se houver vários, concatena todos ordenando pelo total_erros
+			        CONCATENATEX(
+			            TabelaFiltrada,
+			            'Fato_Erro'[errorCode1_txt] & ": " & FORMAT([Qtd], "#,##0"),
+			            ", ",
+			            [Qtd], 
+			            DESC
+			        )
+			    )
+			```
+		lineageTag: 919cb9fd-974e-4bb5-b9ab-afb38e23381f
+
+	measure Top3_Erros_Ultimos_5_Dias = ```
+			
+			// 1. Data máxima baseada no que está filtrado na tela (não blindada)
+			VAR MaxData = CALCULATE(MAX(Fato_Erro[Data]), ALLSELECTED(Fato_Erro))
+			VAR MinData = MaxData - 4
+			VAR DataEixo = MAX(Fato_Erro[Data])
+			
+			// 2. Ranking que respeita os filtros da tela
+			VAR RankingAtual = 
+			    RANKX(
+			        ALLSELECTED(Fato_Erro[errorCode1_txt]), 
+			        CALCULATE(SUM(Fato_Erro[total_erros])), 
+			        , 
+			        DESC, 
+			        DENSE
+			    )
+			
+			// 3. Pega o valor apenas se for Top 3
+			VAR ValorTop3 = 
+			    IF(RankingAtual <= 3, CALCULATE(SUM(Fato_Erro[total_erros])))
+			
+			// 4. Retorna o valor APENAS se a data do eixo X estiver nos últimos 5 dias da seleção
+			RETURN 
+			    IF(
+			        DataEixo >= MinData && DataEixo <= MaxData,
+			        ValorTop3
+			    )
+			```
+		formatString: 0
+		lineageTag: 4198d938-c4cf-4d84-bac3-e13472919f11
+
+	column timerName
+		dataType: string
+		lineageTag: 09c1f92b-59a7-4560-96d8-ae470725204b
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column isError_txt
+		dataType: string
+		lineageTag: d9c7b109-3687-4893-a75d-d70ea15b0780
+		summarizeBy: none
+		sourceColumn: isError_txt
+
+		annotation SummarizationSetBy = Automatic
+
+	column Line
+		dataType: string
+		lineageTag: 3ab1f9a7-32cb-43a4-ac9c-7ca9d8c10425
+		summarizeBy: none
+		sourceColumn: Line
+
+		annotation SummarizationSetBy = Automatic
+
+	column error_code
+		dataType: string
+		lineageTag: 4b85507f-1f11-4895-b509-238b4a1a3533
+		summarizeBy: none
+		sourceColumn: error_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column errorCode1_txt
+		dataType: string
+		lineageTag: 307ec2c4-6802-4fd7-8a34-5e2623868436
+		summarizeBy: none
+		sourceColumn: errorCode1_txt
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_erros
+		dataType: int64
+		formatString: 0
+		lineageTag: 6356cc88-bffa-48ad-9f76-ce984b06667f
+		summarizeBy: sum
+		sourceColumn: total_erros
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 200d16a0-cd9b-45fc-b9f6-81fe7ad94baf
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Fato_Erro = m
+		mode: import
+		source = ```
+				let
+				    Fonte = GoogleBigQuery.Database(),
+				    #"data-lake-manufacturing" = Fonte{[Name="data-lake-manufacturing"]}[Data],
+				    Analytics_emille_Schema = #"data-lake-manufacturing"{[Name="Analytics_emille",Kind="Schema"]}[Data],
+				    tb_Agg_ExtError_RDS_Table = Analytics_emille_Schema{[Name="tb_Agg_ExtError_RDS",Kind="Table"]}[Data],
+				
+				    // ------------------------------------------------------------------
+				    // Duas corrupcoes empilhadas nesta coluna:
+				    //
+				    // 1) Acentos perdidos na carga: cada caractere virou "??" (dois U+FFFD,
+				    //    um por byte UTF-8). Os bytes nao existem mais -- isto reconstroi.
+				    //
+				    // 2) Um conserto anterior aplicou "h" -> "ha com acento" sem contexto.
+				    //    Danificou "fechado" -> "fecháado", "Fehler" -> "Feháler",
+				    //    "Schwei" -> "Scháwei", "durch" -> "durchá", "Blech" -> "Blechá".
+				    //
+				    // As mensagens sao PT, DE e PL misturados, entao regra generica so onde
+				    // for comprovadamente segura. "?? ?? o" e sempre "cao" com cedilha e til;
+				    // nenhuma palavra alema ou polonesa desta base tem esse padrao.
+				    // ------------------------------------------------------------------
+				    Ruim = Character.FromNumber(65533),
+				    R2 = Ruim & Ruim,          // um acentuado perdido
+				    R4 = R2 & R2,              // dois seguidos
+				    NH = "~~NAOHA~~",          // marcador temporario, nao existe nos dados
+				
+				    Trocas = {
+				        // -- normaliza o unico "ha" legitimo, venha como vier
+				        { "há" & R2,          "há" },
+				        { "N" & R2 & "o",     "Não" },
+				        { "h" & R2,           "há" },
+				        { "Não há",           NH },
+				
+				        // -- desfaz a injecao cega de acento depois de todo "h"
+				        { "há",               "h" },
+				        { NH,                 "Não há" },
+				
+				        // -- acentos perdidos
+				        { R4 & "es",          "ções" },
+				        { R4 & "o",           "ção" },
+				        { "Schwei" & R2,      "Schweiß" },
+				        { "Z" & R2 & "ndung", "Zündung" },
+				        { "gefr" & R2 & "st", "gefräst" },
+				        { "Fr" & R2 & "s",    "Fräs" },
+				        { "obw" & R2 & "d",   "obwód" },
+				        { "m" & R2 & "x",     "máx" },
+				        { "M" & R2 & "x",     "Máx" },
+				        { "substitu" & R2 & "do", "substituído" },
+				        { "Pot" & R2 & "ncia",    "Potência" },
+				        { "Mem" & R2 & "ria",     "Memória" },
+				        { "conex" & R2 & "o",     "conexão" },
+				        { "1" & R2,           "1ª" },
+				        { "2" & R2,           "2ª" }
+				    },
+				
+				    Corrigir = (t as nullable text) as nullable text =>
+				        if t = null then null
+				        else List.Accumulate(
+				                Trocas, t,
+				                (estado, par) => Text.Replace(estado, par{0}, par{1})
+				             ),
+				
+				    #"Colunas Renomeadas" = Table.TransformColumns( 
+				        Table.RenameColumns(tb_Agg_ExtError_RDS_Table, {{"data", "Data"}}),
+				        {
+				            {"error_code",     Corrigir, type text},
+				            {"errorCode1_txt", Corrigir, type text}
+				        }
+				    )
+				in
+				    #"Colunas Renomeadas"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação
+

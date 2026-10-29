@@ -1,0 +1,45 @@
+table Dim_Erro
+	lineageTag: cf84e394-2e98-4df0-90d6-0625892cdfc0
+
+	column error_code
+		lineageTag: 9e3f3184-96a0-4fff-9f9e-31bdb4f8cdf4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [error_code]
+
+		annotation SummarizationSetBy = Automatic
+
+	column errorCode1_txt
+		lineageTag: b2a35541-cad5-4e3a-8ac9-edd583606304
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [errorCode1_txt]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Erro = calculated
+		mode: import
+		source =
+				VAR _base =
+				    DISTINCT(
+				        SELECTCOLUMNS(
+				            Fato_Erro,
+				            "error_code", Fato_Erro[error_code],
+				            "errorCode1_txt", Fato_Erro[errorCode1_txt]
+				        )
+				    )
+				
+				VAR _limpo =
+				    FILTER( _base, NOT ISBLANK( [error_code] ) && [error_code] <> "" )
+				
+				VAR _codigos =
+				    DISTINCT( SELECTCOLUMNS( _limpo, "error_code", [error_code] ) )
+				
+				RETURN
+				    ADDCOLUMNS(
+				        _codigos,
+				        "errorCode1_txt",
+				            VAR _c = [error_code]
+				            RETURN COALESCE( MAXX( FILTER( _limpo, [error_code] = _c ), [errorCode1_txt] ), "Sem descricao" )
+				    )
+

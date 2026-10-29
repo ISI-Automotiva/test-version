@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "3e8577f805ce00bdad43",
+  "position": {
+    "x": 850,
+    "y": 106.66666666666667,
+    "z": 31000,
+    "height": 328.33333333333337,
+    "width": 633.33333333333337,
+    "tabOrder": 41000
+  },
+  "visual": {
+    "visualType": "treemap",
+    "query": {
+      "queryState": {
+        "Group": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_Erro"
+                    }
+                  },
+                  "Property": "errorCode1_txt"
+                }
+              },
+              "queryRef": "Fato_Erro.errorCode1_txt",
+              "nativeQueryRef": "errorCode1_txt",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fato_Erro"
+                    }
+                  },
+                  "Property": "Errors2"
+                }
+              },
+              "queryRef": "Fato_Erro.Errors2",
+              "nativeQueryRef": "Errors2"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'TIPOS DE ERRO'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

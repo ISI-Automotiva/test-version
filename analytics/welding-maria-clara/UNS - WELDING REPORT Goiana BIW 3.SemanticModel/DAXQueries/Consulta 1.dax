@@ -1,0 +1,11 @@
+EVALUATE
+ADDCOLUMNS (
+    SUMMARIZE (
+        Fato_Solda,
+        Fato_Solda[timerName],
+        Fato_Solda[StatusDADOS],
+        Fato_Solda[Status_Measuring]
+    ),
+    "dateTime", CALCULATE ( MAX ( Fato_Solda[dateTime] ) )
+)
+ORDER BY Fato_Solda[timerName]

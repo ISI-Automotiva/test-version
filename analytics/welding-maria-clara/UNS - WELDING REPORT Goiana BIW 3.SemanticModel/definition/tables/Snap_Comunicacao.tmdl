@@ -1,0 +1,99 @@
+table Snap_Comunicacao
+	lineageTag: a16ead8e-8410-4ef0-96f2-98dee565a1b9
+
+	column timerName
+		dataType: string
+		lineageTag: 44fb7490-4c76-4ce4-90ac-f73c7de71ae7
+		summarizeBy: none
+		sourceColumn: timerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column timerAddr
+		dataType: string
+		lineageTag: 320bee90-2be7-4cd2-8618-3881152490ab
+		summarizeBy: none
+		sourceColumn: timerAddr
+
+		annotation SummarizationSetBy = Automatic
+
+	column timerIpAddress
+		dataType: string
+		lineageTag: daeca0d0-3f37-44b8-93c5-392ccfdedc59
+		summarizeBy: none
+		sourceColumn: timerIpAddress
+
+		annotation SummarizationSetBy = Automatic
+
+	column timerComment
+		dataType: string
+		lineageTag: fecb3c4b-4d32-461c-8ff7-f78a655a2dba
+		summarizeBy: none
+		sourceColumn: timerComment
+
+		annotation SummarizationSetBy = Automatic
+
+	column online
+		dataType: string
+		lineageTag: 9a347675-1f69-489c-9112-c5ca8f0399a8
+		summarizeBy: none
+		sourceColumn: online
+
+		annotation SummarizationSetBy = Automatic
+
+	column softwareVersion
+		dataType: string
+		lineageTag: 78747981-cfb0-41d6-a8f5-a589d68e696a
+		summarizeBy: none
+		sourceColumn: softwareVersion
+
+		annotation SummarizationSetBy = Automatic
+
+	column communicationState
+		dataType: string
+		lineageTag: fdda1acf-2f2b-4f58-b7db-81c63ad2c469
+		summarizeBy: none
+		sourceColumn: communicationState
+
+		annotation SummarizationSetBy = Automatic
+
+	column realSoftwareVersion
+		dataType: string
+		lineageTag: 26381bd6-b95a-45a5-9e7e-f9fa2de26fcd
+		summarizeBy: none
+		sourceColumn: realSoftwareVersion
+
+		annotation SummarizationSetBy = Automatic
+
+	column direction
+		dataType: string
+		lineageTag: bbb216a4-29a0-47b4-a88f-c5c78c147313
+		summarizeBy: none
+		sourceColumn: direction
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 7ae47977-0920-4afd-8465-bc77253d3564
+		summarizeBy: none
+		sourceColumn: dateTime
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Snap_Comunicacao = m
+		mode: import
+		source =
+				let
+				    Fonte = GoogleBigQuery.Database(),
+				    #"data-lake-manufacturing" = Fonte{[Name="data-lake-manufacturing"]}[Data],
+				    Analytics_emille_Schema = #"data-lake-manufacturing"{[Name="Analytics_emille",Kind="Schema"]}[Data],
+				    tb_CommunicationState_Table = Analytics_emille_Schema{[Name="tb_CommunicationState", Kind="Table"]}[Data]
+				in
+				    tb_CommunicationState_Table
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

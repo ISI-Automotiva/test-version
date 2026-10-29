@@ -1,0 +1,651 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "33ae83c0e07b127e2616",
+  "displayName": "3.2.1 DETALHE SPLASH",
+  "displayOption": "FitToPage",
+  "height": 800,
+  "width": 1500,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "e1811eee9052beb81405",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fato_Solda"
+              }
+            },
+            "Property": "Modelo"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Fato_Solda",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Not": {
+                  "Expression": {
+                    "In": {
+                      "Expressions": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "e"
+                              }
+                            },
+                            "Property": "Modelo"
+                          }
+                        }
+                      ],
+                      "Values": [
+                        [
+                          {
+                            "Literal": {
+                              "Value": "'None'"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "54d785e9039940e01659",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fato_Solda"
+              }
+            },
+            "Property": "Status_Measuring"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Fato_Solda",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "e"
+                          }
+                        },
+                        "Property": "Status_Measuring"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Ligado'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "6576d714fac4657332f4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fato_Erro"
+              }
+            },
+            "Property": "errorCode1_txt"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Fato_Erro",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "e"
+                          }
+                        },
+                        "Property": "errorCode1_txt"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Temp. transformador dem. alta'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Ciclo bloqueado'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'PSQ erro'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Não há conexão ao CS'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Erro de solda'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Abastecimento 24V desligado/insuficiente'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Diodo defeituoso'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Erro hardware'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Mem��ria deletada'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Não há programa de solda'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Pot. demas. alta (Val. nom.)'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Q parada'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Restaurar dados ativo'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Sobrecorrente ou erro terra'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Tempo de solda interrompido/falta de corrente'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Tensão de rede desligada/insuficiente'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "1c4c0a1c905806e1286e",
+    "type": "Default",
+    "parameters": [],
+    "acceptsFilterContext": "None"
+  },
+  "objects": {
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "ThemeDataColor": {
+                    "ColorId": 0,
+                    "Percent": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "border": {
+            "expr": {
+              "Literal": {
+                "Value": "true"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "background": [
+      {
+        "properties": {
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "''"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "Literal": {
+                    "Value": "''"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode",
+  "visualInteractions": [
+    {
+      "source": "01920713883d7c16d20a",
+      "target": "18045810018e61101073",
+      "type": "DataFilter"
+    },
+    {
+      "source": "01920713883d7c16d20a",
+      "target": "5d0dc3b80d20e5c15040",
+      "type": "DataFilter"
+    },
+    {
+      "source": "01920713883d7c16d20a",
+      "target": "b47ee8d546389699bbe2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "01920713883d7c16d20a",
+      "target": "c1d5dfc0cbdd52a88a04",
+      "type": "DataFilter"
+    },
+    {
+      "source": "01920713883d7c16d20a",
+      "target": "d2231983218b44977eb2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "01920713883d7c16d20a",
+      "target": "d95af3b90108754bd695",
+      "type": "DataFilter"
+    },
+    {
+      "source": "01920713883d7c16d20a",
+      "target": "e285b0e0228cd0d05edd",
+      "type": "DataFilter"
+    },
+    {
+      "source": "18045810018e61101073",
+      "target": "01920713883d7c16d20a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "18045810018e61101073",
+      "target": "5d0dc3b80d20e5c15040",
+      "type": "DataFilter"
+    },
+    {
+      "source": "18045810018e61101073",
+      "target": "b47ee8d546389699bbe2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "18045810018e61101073",
+      "target": "c1d5dfc0cbdd52a88a04",
+      "type": "DataFilter"
+    },
+    {
+      "source": "18045810018e61101073",
+      "target": "d2231983218b44977eb2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "18045810018e61101073",
+      "target": "d95af3b90108754bd695",
+      "type": "DataFilter"
+    },
+    {
+      "source": "18045810018e61101073",
+      "target": "e285b0e0228cd0d05edd",
+      "type": "DataFilter"
+    },
+    {
+      "source": "5d0dc3b80d20e5c15040",
+      "target": "01920713883d7c16d20a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "5d0dc3b80d20e5c15040",
+      "target": "18045810018e61101073",
+      "type": "DataFilter"
+    },
+    {
+      "source": "5d0dc3b80d20e5c15040",
+      "target": "b47ee8d546389699bbe2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "5d0dc3b80d20e5c15040",
+      "target": "c1d5dfc0cbdd52a88a04",
+      "type": "DataFilter"
+    },
+    {
+      "source": "5d0dc3b80d20e5c15040",
+      "target": "d2231983218b44977eb2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "5d0dc3b80d20e5c15040",
+      "target": "d95af3b90108754bd695",
+      "type": "DataFilter"
+    },
+    {
+      "source": "5d0dc3b80d20e5c15040",
+      "target": "e285b0e0228cd0d05edd",
+      "type": "DataFilter"
+    },
+    {
+      "source": "b47ee8d546389699bbe2",
+      "target": "01920713883d7c16d20a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "b47ee8d546389699bbe2",
+      "target": "18045810018e61101073",
+      "type": "DataFilter"
+    },
+    {
+      "source": "b47ee8d546389699bbe2",
+      "target": "5d0dc3b80d20e5c15040",
+      "type": "DataFilter"
+    },
+    {
+      "source": "b47ee8d546389699bbe2",
+      "target": "c1d5dfc0cbdd52a88a04",
+      "type": "DataFilter"
+    },
+    {
+      "source": "b47ee8d546389699bbe2",
+      "target": "d2231983218b44977eb2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "b47ee8d546389699bbe2",
+      "target": "d95af3b90108754bd695",
+      "type": "DataFilter"
+    },
+    {
+      "source": "b47ee8d546389699bbe2",
+      "target": "e285b0e0228cd0d05edd",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c1d5dfc0cbdd52a88a04",
+      "target": "01920713883d7c16d20a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c1d5dfc0cbdd52a88a04",
+      "target": "18045810018e61101073",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c1d5dfc0cbdd52a88a04",
+      "target": "5d0dc3b80d20e5c15040",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c1d5dfc0cbdd52a88a04",
+      "target": "b47ee8d546389699bbe2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c1d5dfc0cbdd52a88a04",
+      "target": "d2231983218b44977eb2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c1d5dfc0cbdd52a88a04",
+      "target": "d95af3b90108754bd695",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c1d5dfc0cbdd52a88a04",
+      "target": "e285b0e0228cd0d05edd",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2231983218b44977eb2",
+      "target": "01920713883d7c16d20a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2231983218b44977eb2",
+      "target": "18045810018e61101073",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2231983218b44977eb2",
+      "target": "5d0dc3b80d20e5c15040",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2231983218b44977eb2",
+      "target": "b47ee8d546389699bbe2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2231983218b44977eb2",
+      "target": "c1d5dfc0cbdd52a88a04",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2231983218b44977eb2",
+      "target": "d95af3b90108754bd695",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2231983218b44977eb2",
+      "target": "e285b0e0228cd0d05edd",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d95af3b90108754bd695",
+      "target": "01920713883d7c16d20a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d95af3b90108754bd695",
+      "target": "18045810018e61101073",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d95af3b90108754bd695",
+      "target": "5d0dc3b80d20e5c15040",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d95af3b90108754bd695",
+      "target": "b47ee8d546389699bbe2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d95af3b90108754bd695",
+      "target": "c1d5dfc0cbdd52a88a04",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d95af3b90108754bd695",
+      "target": "d2231983218b44977eb2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d95af3b90108754bd695",
+      "target": "e285b0e0228cd0d05edd",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e285b0e0228cd0d05edd",
+      "target": "01920713883d7c16d20a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e285b0e0228cd0d05edd",
+      "target": "18045810018e61101073",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e285b0e0228cd0d05edd",
+      "target": "5d0dc3b80d20e5c15040",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e285b0e0228cd0d05edd",
+      "target": "b47ee8d546389699bbe2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e285b0e0228cd0d05edd",
+      "target": "c1d5dfc0cbdd52a88a04",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e285b0e0228cd0d05edd",
+      "target": "d2231983218b44977eb2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e285b0e0228cd0d05edd",
+      "target": "d95af3b90108754bd695",
+      "type": "DataFilter"
+    }
+  ]
+}

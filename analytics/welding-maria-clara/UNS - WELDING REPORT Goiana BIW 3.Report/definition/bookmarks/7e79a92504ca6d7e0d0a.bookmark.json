@@ -1,0 +1,574 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "FILTROS_ABERTO",
+  "name": "7e79a92504ca6d7e0d0a",
+  "options": {
+    "suppressActiveSection": true,
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.0",
+    "activeSection": "199b99965585b516bd3e",
+    "sections": {
+      "691ae5b5d9f0f52023ca": {
+        "visualContainers": {
+          "34d02ff8ee8e813388ff": {
+            "singleVisual": {}
+          },
+          "61bcd2caea47d9333e0e": {
+            "singleVisual": {}
+          },
+          "6ce693a2b7f7b84e3de8": {
+            "singleVisual": {}
+          },
+          "ba2887e975baf877171c": {
+            "singleVisual": {}
+          },
+          "bf566eb9c5f240ec565c": {
+            "singleVisual": {}
+          },
+          "c32b9a67cef483f7b09d": {
+            "singleVisual": {}
+          },
+          "cac1f51b756e7278700b": {
+            "singleVisual": {}
+          },
+          "dfd8c9609e28512cae6c": {
+            "singleVisual": {}
+          },
+          "f068c932feb008a1a523": {
+            "singleVisual": {}
+          },
+          "8181157faef7b42126aa": {
+            "singleVisual": {}
+          },
+          "083c5b0745712aec8a0a": {
+            "singleVisual": {}
+          },
+          "eaa1a615edc5be840783": {
+            "singleVisual": {}
+          },
+          "6a356cc469d8351bdde9": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "199b99965585b516bd3e": {
+        "visualContainers": {
+          "049fe7af1d7d13d40bed": {
+            "singleVisual": {}
+          },
+          "16fb1e7fb9f9d265e5a2": {
+            "singleVisual": {}
+          },
+          "23eef81b42c2ef507e13": {
+            "singleVisual": {}
+          },
+          "4182f046a44784ff814a": {
+            "singleVisual": {}
+          },
+          "726373239a0a76db21f8": {
+            "singleVisual": {}
+          },
+          "a6f056bf77efa6115112": {
+            "singleVisual": {}
+          },
+          "b04cfea06a2c313a0beb": {
+            "singleVisual": {}
+          },
+          "cadae4b67dc576551395": {
+            "singleVisual": {}
+          },
+          "ed0827bf08a587d2433c": {
+            "singleVisual": {}
+          },
+          "163c1a380abd02fbc066": {
+            "singleVisual": {}
+          },
+          "2aad7a4178aeb79ed257": {
+            "singleVisual": {}
+          },
+          "bb1bd38ce6bd2a787b10": {
+            "singleVisual": {}
+          },
+          "b6bf40a3f9daead18d63": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "b3b3922a944780d495ec": {
+        "visualContainers": {
+          "01e27aef6bae8d583faa": {
+            "singleVisual": {}
+          },
+          "06c52cacb62c5e8dc195": {
+            "singleVisual": {}
+          },
+          "0f8908604e5f44838fdb": {
+            "singleVisual": {}
+          },
+          "15b5f645c279c1cb6b61": {
+            "singleVisual": {}
+          },
+          "317c9e7c6f8d0f16927e": {
+            "singleVisual": {}
+          },
+          "566789e19dd216725e3d": {
+            "singleVisual": {}
+          },
+          "ad7a3c09f12cc10e045d": {
+            "singleVisual": {}
+          },
+          "be4735cee4ca28df2ac3": {
+            "singleVisual": {}
+          },
+          "daad7550965e3803cdb9": {
+            "singleVisual": {}
+          },
+          "0d8255798fce51c2cd6e": {
+            "singleVisual": {}
+          },
+          "e67ba03204d1e4b64889": {
+            "singleVisual": {}
+          },
+          "89db92eae4ed93d17512": {
+            "singleVisual": {}
+          },
+          "94e946dd319585437c7d": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "37f2ffd29e0280a95aab": {
+        "visualContainers": {
+          "064c7ce09ac04c2d1090": {
+            "singleVisual": {}
+          },
+          "3d7a41f473e7c8dba6ad": {
+            "singleVisual": {}
+          },
+          "514f03009094447e5bb4": {
+            "singleVisual": {}
+          },
+          "8f368aef886c4300a9a0": {
+            "singleVisual": {}
+          },
+          "b728d5ca0345104ec1a8": {
+            "singleVisual": {}
+          },
+          "d16ef41f70e1cd728880": {
+            "singleVisual": {}
+          },
+          "f5d295b33460d96c16ea": {
+            "singleVisual": {}
+          },
+          "fa43b76d6d5c09ed75c3": {
+            "singleVisual": {}
+          },
+          "fd636a0d898b04025ca0": {
+            "singleVisual": {}
+          },
+          "bbacec46c0e6fb29601d": {
+            "singleVisual": {}
+          },
+          "1cc1f382273b7ce0dd63": {
+            "singleVisual": {}
+          },
+          "7560cf04c3578a8087fc": {
+            "singleVisual": {}
+          },
+          "11f54506cfb5c4ee255e": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "ReportSection4635c4db01e4811511c2": {
+        "visualContainers": {
+          "0272943a490fa3dce7db": {
+            "singleVisual": {}
+          },
+          "39b81cd6953dccade8f7": {
+            "singleVisual": {}
+          },
+          "3d3bcc07506264de3fc9": {
+            "singleVisual": {}
+          },
+          "9d1d1bcc8160e51960ca": {
+            "singleVisual": {}
+          },
+          "c1a4823788a334b689de": {
+            "singleVisual": {}
+          },
+          "d5bd8de55fdf629d3dc4": {
+            "singleVisual": {}
+          },
+          "e6f8809bcafadf9a6ab2": {
+            "singleVisual": {}
+          },
+          "e83b29df9ae373a48bf9": {
+            "singleVisual": {}
+          },
+          "fa6145f5936acf8707c4": {
+            "singleVisual": {}
+          },
+          "7651c10f1afdca5cae48": {
+            "singleVisual": {}
+          },
+          "185d26845e5b9f480f6d": {
+            "singleVisual": {}
+          },
+          "945ef5bedf8a78f6e087": {
+            "singleVisual": {}
+          },
+          "7089035dd62850cdbf5c": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "ffc5e4222642b3c041b8": {
+        "visualContainers": {
+          "0dd3b92644c3cd5961c0": {
+            "singleVisual": {}
+          },
+          "287ff31791002cdb6ec8": {
+            "singleVisual": {}
+          },
+          "31f870b201365a04a80b": {
+            "singleVisual": {}
+          },
+          "46bd6d22e28787966689": {
+            "singleVisual": {}
+          },
+          "66b0a9c3308a10c1da86": {
+            "singleVisual": {}
+          },
+          "69c3cbbc07635e151383": {
+            "singleVisual": {}
+          },
+          "86082a821b01b9c008ae": {
+            "singleVisual": {}
+          },
+          "885f8db22225d880c197": {
+            "singleVisual": {}
+          },
+          "d63094cd4d0e57c585c0": {
+            "singleVisual": {}
+          },
+          "2623bb209c22b79c0037": {
+            "singleVisual": {}
+          },
+          "ba754d3b9e42228812e7": {
+            "singleVisual": {}
+          },
+          "ae0cd23b545da1ceaaba": {
+            "singleVisual": {}
+          },
+          "7a01fedb4c42bc32cb2a": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "ReportSectiond8476c2722cf09b7b06e": {
+        "visualContainers": {
+          "21f425581d422ffaa827": {
+            "singleVisual": {}
+          },
+          "3fad1bba17e9ca2932ab": {
+            "singleVisual": {}
+          },
+          "51503fadb09c8491d917": {
+            "singleVisual": {}
+          },
+          "603dfc4aff16517ea0d6": {
+            "singleVisual": {}
+          },
+          "644145603963671c10e0": {
+            "singleVisual": {}
+          },
+          "6f9f608612e04968f4f9": {
+            "singleVisual": {}
+          },
+          "87079cbbdb4b71ffdd95": {
+            "singleVisual": {}
+          },
+          "aff17ba1de0028d03ee5": {
+            "singleVisual": {}
+          },
+          "ed4e0d98c1ecdca5694e": {
+            "singleVisual": {}
+          },
+          "f898c582adcb4dcfda83": {
+            "singleVisual": {}
+          },
+          "a9560038da03f04bcf07": {
+            "singleVisual": {}
+          },
+          "2e141b5a933078997641": {
+            "singleVisual": {}
+          },
+          "d76a7c9ebc6bf9926176": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "9669f3bd4b62ce042ec1": {
+        "visualContainers": {
+          "27ad2dfbf6f380595eaf": {
+            "singleVisual": {}
+          },
+          "35b1b1ee8d2483a3a47d": {
+            "singleVisual": {}
+          },
+          "42729b1c78ab03303965": {
+            "singleVisual": {}
+          },
+          "46221be81fca54f0d04d": {
+            "singleVisual": {}
+          },
+          "7d875e4e1c533aa6887d": {
+            "singleVisual": {}
+          },
+          "82de7f502ca105fb006b": {
+            "singleVisual": {}
+          },
+          "baa7d3cc57db55c66881": {
+            "singleVisual": {}
+          },
+          "daa3f96075619de94e82": {
+            "singleVisual": {}
+          },
+          "dafff443b0235b754bab": {
+            "singleVisual": {}
+          },
+          "5dc3c5f76209d52ea7ae": {
+            "singleVisual": {}
+          },
+          "96025fd28ace0a7c5f7d": {
+            "singleVisual": {}
+          },
+          "6e1cd9f328c891760d41": {
+            "singleVisual": {}
+          },
+          "e24f5c9f1e710459db6d": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "ReportSection1d42bda507f0a739103b": {
+        "visualContainers": {
+          "4c3ceae912692d8f6596": {
+            "singleVisual": {}
+          },
+          "59f5e330614cb48216d0": {
+            "singleVisual": {}
+          },
+          "5c2611f3bd5dac8fbffd": {
+            "singleVisual": {}
+          },
+          "8adbb10d38ffcb15e8ec": {
+            "singleVisual": {}
+          },
+          "94c9501d98d03606878d": {
+            "singleVisual": {}
+          },
+          "b88d30d891851c6bae03": {
+            "singleVisual": {}
+          },
+          "b8aaed9c691c18902293": {
+            "singleVisual": {}
+          },
+          "d17c5203047f99c58448": {
+            "singleVisual": {}
+          },
+          "d6fa7aed31cfb0983870": {
+            "singleVisual": {}
+          },
+          "d226c87db3aef085c1aa": {
+            "singleVisual": {}
+          },
+          "ada84db0d89f7bf494af": {
+            "singleVisual": {}
+          },
+          "804e73356aef29c656db": {
+            "singleVisual": {}
+          },
+          "8edff97d2dea85acb73f": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "ReportSectionce7acb4a685ad381be4b": {
+        "visualContainers": {
+          "0f7d2dd85254e2507e5f": {
+            "singleVisual": {}
+          },
+          "2245fe9d3807cbdb54b2": {
+            "singleVisual": {}
+          },
+          "45c80f2bdb845118750f": {
+            "singleVisual": {}
+          },
+          "919668be52ca7799bcd7": {
+            "singleVisual": {}
+          },
+          "9a2ec7de4d36e6b28f6a": {
+            "singleVisual": {}
+          },
+          "ab8b59a50ea65d8c17b2": {
+            "singleVisual": {}
+          },
+          "d19398e97ef4da74e733": {
+            "singleVisual": {}
+          },
+          "e26048432063108b5e80": {
+            "singleVisual": {}
+          },
+          "ee88c4d9af91fcb7369b": {
+            "singleVisual": {}
+          },
+          "57d5caaf0f5e1d48e489": {
+            "singleVisual": {}
+          },
+          "d5932ed5200dcf8cc3f0": {
+            "singleVisual": {}
+          },
+          "6bb33a1516822c7fecf6": {
+            "singleVisual": {}
+          },
+          "963773e7b94bb985acef": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "2c1ef5e60a202bded761": {
+        "visualContainers": {
+          "0dc73dbf4237e423ba7a": {
+            "singleVisual": {}
+          },
+          "30eb92c1fd1dfa48a1fa": {
+            "singleVisual": {}
+          },
+          "6e3f807ecb8e83073e09": {
+            "singleVisual": {}
+          },
+          "9fea161459244097d814": {
+            "singleVisual": {}
+          },
+          "a454adc30519bebb321c": {
+            "singleVisual": {}
+          },
+          "bb878ee9405975c3b978": {
+            "singleVisual": {}
+          },
+          "c09e8dbc76b55c86f6e7": {
+            "singleVisual": {}
+          },
+          "c5a510774bd868e3ed4e": {
+            "singleVisual": {}
+          },
+          "f1659b210f3179b6c479": {
+            "singleVisual": {}
+          },
+          "54e32e664fc465fc9559": {
+            "singleVisual": {}
+          },
+          "dd98f1d9c5e1a3c3fa48": {
+            "singleVisual": {}
+          },
+          "4d9d4d9a85adc231c64d": {
+            "singleVisual": {}
+          },
+          "71d2b0288d1afc5474e8": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "501ed74533cc89b97b5c": {
+        "visualContainers": {
+          "143e7821e40d803612a8": {
+            "singleVisual": {}
+          },
+          "2d3cdb2e0c5215920909": {
+            "singleVisual": {}
+          },
+          "4354af536a40ee112a4a": {
+            "singleVisual": {}
+          },
+          "500fe5c934859eeaea58": {
+            "singleVisual": {}
+          },
+          "7b529f994527d57cd48a": {
+            "singleVisual": {}
+          },
+          "a88a698bd53c420ec69e": {
+            "singleVisual": {}
+          },
+          "d80bc9529540d0d6188d": {
+            "singleVisual": {}
+          },
+          "e205189e20099dd9b445": {
+            "singleVisual": {}
+          },
+          "e8294cb91e98438bde3a": {
+            "singleVisual": {}
+          },
+          "b6a91a54bbfc4da1c673": {
+            "singleVisual": {}
+          },
+          "e16e37b8a6fedd212bc5": {
+            "singleVisual": {}
+          },
+          "b99dc67d5d061316ba3d": {
+            "singleVisual": {}
+          },
+          "2ba9b6692a05a1404782": {
+            "singleVisual": {}
+          }
+        }
+      },
+      "9f53b64b6391124ea447": {
+        "visualContainers": {
+          "10966161d92ee46bbf06": {
+            "singleVisual": {}
+          },
+          "a0aeb874fb05a5260c0f": {
+            "singleVisual": {}
+          },
+          "a6804f0fbb44233eb476": {
+            "singleVisual": {}
+          },
+          "ab3b290dae526f8497c8": {
+            "singleVisual": {}
+          },
+          "afe4186d46123ae52b87": {
+            "singleVisual": {}
+          },
+          "c305412fc3046b4cee04": {
+            "singleVisual": {}
+          },
+          "cc7e6cf506fa9561f7e4": {
+            "singleVisual": {}
+          },
+          "d18db736fb448b22d1b3": {
+            "singleVisual": {}
+          },
+          "d694fc636107cfd5778b": {
+            "singleVisual": {}
+          },
+          "2d46b9dedc7e580c9cbe": {
+            "singleVisual": {}
+          },
+          "398f15a6775a0037d3b5": {
+            "singleVisual": {}
+          },
+          "84b0883a82281b814164": {
+            "singleVisual": {}
+          },
+          "ad119cecaf93984feba5": {
+            "singleVisual": {}
+          }
+        }
+      }
+    }
+  }
+}

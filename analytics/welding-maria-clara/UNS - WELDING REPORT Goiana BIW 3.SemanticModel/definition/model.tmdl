@@ -1,0 +1,33 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Dim_Data","Dim_Pinca","Atualização","Fato_Erro","Fato_Fresagem","Fato_MudancaParam","Snap_Comunicacao","Fato_Pontos","Fato_Parametros_Corrente","PHA2_Diario_fixo","Dim_Modelo"]
+
+annotation PBI_ProTooling = ["DaxQueryView_Desktop","DevMode"]
+
+ref table Dim_Data
+ref table Dim_Pinca
+ref table Atualização
+ref table Fato_Solda
+ref table Fato_Erro
+ref table Fato_Fresagem
+ref table Fato_MudancaParam
+ref table Snap_Comunicacao
+ref table Reports
+ref table Fato_Parametros_Corrente
+ref table Fato_Pontos
+ref table Fato_PHA2_Diario
+ref table Dim_Modelo
+ref table Fato_Splash_Diario
+ref table Dim_Erro
+ref table Dim_Robo
+
+ref cultureInfo pt-BR
+

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "UNS - WELDING REPORT Goiana BIW 3"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "bac3f6e0-4fdb-4efb-9c10-daceff9f065b"
+  }
+}
